@@ -163,7 +163,7 @@
         // =======================================================
         // הכנס כאן את הקישור שהעתקת מגוגל Apps Script:
         // =======================================================
-        const GOOGLE_SHEET_API_URL = "https://docs.google.com/spreadsheets/d/1XZzKr3dMYt5GVGs8sx2_EsyecFdmLAnO8csBbZmew7s/edit?gid=0#gid=0"; 
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzHh9oWMPATuev4sAvEWzvSMXsPZZacISGz33GNrlJ_OZtTISSLHYGxSy4YMhJ6G39_/exec"; 
         
         // === לוגיקת החלפת טאבים ===
         function switchTab(tabId, btnElement) {
@@ -386,7 +386,7 @@
 
         // פונקציה למשיכת הנתונים בזמן אמת מהגוגל שיטס
         async function fetchContactsFromSheets() {
-            if (GOOGLE_SHEET_API_URL === "https://script.google.com/macros/s/AKfycbzHh9oWMPATuev4sAvEWzvSMXsPZZacISGz33GNrlJ_OZtTISSLHYGxSy4YMhJ6G39_/exec" || !GOOGLE_SHEET_API_URL.includes("script.google.com")) {
+            if (GOOGLE_SHEET_API_URL === "הדבק_כאן_את_הקישור" || !GOOGLE_SHEET_API_URL.includes("script.google.com")) {
                 loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאה: חסר קישור ל-Google Sheets בתוך קוד האתר.</span>';
                 return;
             }
@@ -472,8 +472,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
