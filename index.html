@@ -6,15 +6,6 @@
     <title>מערכת עורכי דין - ערן דמרי</title>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&family=Assistant:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* הקוד הזה יעלים את הכותרת המיותרת וינעל את המסך */
-h1 { display: none !important; } 
-
-html, body { 
-    max-width: 100vw; 
-    overflow-x: hidden; 
-    margin: 0; 
-    padding: 0; 
-}
         :root {--primary:#f2cb05;--primary-hover:#d1b004;--danger:#ff4d4d;--success:#2ecc71;--info:#3498db;--bg-color:#121212;--card-bg:#1e1e1e;--text-main:#ffffff;--text-muted:#a0a0a0;--border:#333333; --secondary-blue: #3b82f6; --call-green: #10b981; --wa-green: #25D366;}
         *{box-sizing:border-box;font-family:'Heebo',sans-serif;}
         *:focus{outline:3px solid var(--primary);outline-offset:2px;}
@@ -152,9 +143,10 @@ html, body {
 
         <div id="tab-experts" class="tab-content">
             <div class="search-input-group">
-                <input type="search" id="expertSearchInput" placeholder="חיפוש: שם, תפקיד או מומחיות..." autocomplete="off">
+                <input type="search" id="expertSearchInput" placeholder="חיפוש: שם, תפקיד או מומחיות..." autocomplete="off" disabled>
                 <button class="search-btn" style="pointer-events: none;">🔍</button>
             </div>
+            <div id="loadingExperts" style="text-align:center; color:var(--primary); font-weight:bold; margin-bottom:15px;">טוען נתונים מהמאגר... ⏳</div>
             <div id="expertResultsContainer" class="results-container"></div>
             <div id="noExpertResults" class="empty-state">לא נמצאו תוצאות לחיפוש שלך 🔍</div>
         </div>
@@ -168,6 +160,11 @@ html, body {
     </div>
 
     <script>
+        // =======================================================
+        // הכנס כאן את הקישור שהעתקת מגוגל Apps Script:
+        // =======================================================
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzHh9oWMPATuev4sAvEWzvSMXsPZZacISGz33GNrlJ_OZtTISSLHYGxSy4YMhJ6G39_/exec"; 
+        
         // === לוגיקת החלפת טאבים ===
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -176,7 +173,7 @@ html, body {
             btnElement.classList.add('active');
         }
 
-        // === לוגיקת עבירות (הקוד המקורי המדויק) ===
+        // === לוגיקת עבירות ===
         const offenseResourceId = 'a2dd714b-e012-46e4-a996-6307f8b46fc5';
         const baseUrl = 'https://data.gov.il/api/3/action/datastore_search';
         let apiRecords = []; 
@@ -199,7 +196,7 @@ html, body {
                 const response = await fetch(`${baseUrl}?resource_id=${offenseResourceId}&limit=10000`);
                 const data = await response.json();
                 apiRecords = data.result.records;
-            } catch (error) { console.log('Error loading'); }
+            } catch (error) {}
         }
         loadOffenses();
 
@@ -216,33 +213,25 @@ html, body {
             let isSummons = false;
 
             if (isHana) {
-                if (hanaSummons.includes(semel)) {
-                    isSummons = true;
-                } else {
-                    knasNum = parseInt(hanaFines[semel]);
-                }
+                if (hanaSummons.includes(semel)) { isSummons = true; } 
+                else { knasNum = parseInt(hanaFines[semel]); }
             } else {
                 let knasRaw = record['קנס'] || record['KNAS'] || record['סכום קנס'] || '0';
                 if (String(knasRaw).includes('/')) knasRaw = String(knasRaw).split('/')[0]; 
                 knasNum = parseInt(knasRaw);
-                isSummons = false; // הסרת הזמנה לדין מתוצאות מאגר
+                isSummons = false; 
             }
 
             let tagsHTML = '';
             let warningHTML = '';
             let isSpeeding = desc.includes('מהירות') || desc.includes('קמ"ש') || desc.includes('קמש');
 
-            if (isSummons) {
-                tagsHTML += `<div class="badge court blink">🚨 הזמנה לדין</div>`;
-            } else if (knasNum > 0) {
+            if (isSummons) { tagsHTML += `<div class="badge court blink">🚨 הזמנה לדין</div>`; } 
+            else if (knasNum > 0) {
                 tagsHTML += `<div class="badge fine">💳 קנס: ₪${knasNum}</div>`;
                 if (knasNum <= 500 && !isSpeeding) tagsHTML += `<div class="badge violation">⚖️ הפרה מנהלית</div>`;
-                
-                if (NO_WARNING_CODES.includes(semel) || knasNum >= 1500) {
-                    warningHTML = `<div class="badge warning-no">⚠️ סוג העבירה אינו ניתן להמרה באזהרה</div>`;
-                } else {
-                    warningHTML = `<div class="badge warning-yes">✅ סוג העבירה ניתן להמרה באזהרה</div>`;
-                }
+                if (NO_WARNING_CODES.includes(semel) || knasNum >= 1500) { warningHTML = `<div class="badge warning-no">⚠️ סוג העבירה אינו ניתן להמרה באזהרה</div>`; } 
+                else { warningHTML = `<div class="badge warning-yes">✅ סוג העבירה ניתן להמרה באזהרה</div>`; }
             }
 
             const titleIcon = isHana ? '✅ סעיף בחנ"א' : '⭐ סמל סעיף';
@@ -335,37 +324,27 @@ html, body {
                         const isBHana = hanaFines[sB] || hanaSummons.includes(sB);
                         return isBHana - isAHana;
                     });
-
-                    let html = ''; 
-                    foundInCache.slice(0, 15).forEach(r => { html += buildCard(r); }); 
-                    oResults.innerHTML = html;
+                    let html = ''; foundInCache.slice(0, 15).forEach(r => { html += buildCard(r); }); oResults.innerHTML = html;
                 } else {
                     const url = `${baseUrl}?resource_id=${offenseResourceId}&q=${encodeURIComponent(searchTerm)}&limit=15`;
                     const response = await fetch(url);
                     const data = await response.json();
-                    if (data.result.records.length === 0) { 
-                        oResults.innerHTML = '<div style="text-align:center;color:#fff;">לא נמצאו עבירות.</div>'; 
-                        return; 
-                    }
-                    let html = ''; 
-                    data.result.records.forEach(r => { html += buildCard(r); }); 
-                    oResults.innerHTML = html;
+                    if (data.result.records.length === 0) { oResults.innerHTML = '<div style="text-align:center;color:#fff;">לא נמצאו עבירות.</div>'; return; }
+                    let html = ''; data.result.records.forEach(r => { html += buildCard(r); }); oResults.innerHTML = html;
                 }
             } catch (error) { oResults.innerHTML = '<div style="text-align:center;color:#ff4d4d;">שגיאת תקשורת מול המאגר.</div>'; }
         }
 
-        // === לוגיקת תו נכה (הקוד המקורי המדויק) ===
+        // === לוגיקת תו נכה ===
         function performDisabledCheck() {
             const inputField = document.getElementById('carNumberInput');
             const resBox = document.getElementById('disabledResults');
             const rawInput = inputField.value;
-            
             let cleanNumber = "";
             for (let i = 0; i < rawInput.length; i++) { if (rawInput[i] >= '0' && rawInput[i] <= '9') cleanNumber += rawInput[i]; }
 
             if (cleanNumber === '') { resBox.innerHTML = '<div class="msg-error">אנא הקלד מספר רכב חוקי</div>'; return; }
             resBox.innerHTML = '<div style="text-align:center;color:#fff;">בודק זכאות תו נכה במאגר...</div>';
-
             const url = `https://data.gov.il/api/3/action/datastore_search?resource_id=c8b9f9c8-4612-4068-934f-d4acd2e3c06e&q=${cleanNumber}`;
 
             fetch(url).then(r => r.json()).then(data => {
@@ -376,79 +355,86 @@ html, body {
                         for (let key in rec) { if (String(rec[key]).trim() === cleanNumber) { exactMatch = rec; break; } }
                         if (exactMatch) break;
                     }
-
                     if (exactMatch) {
                         let issueDate = 'לא מצוין';
                         for (let k in exactMatch) {
                             if (String(exactMatch[k]).includes('-') && String(exactMatch[k]).includes('T')) {
                                 let rawDate = String(exactMatch[k]).split('T')[0]; 
                                 let dateParts = rawDate.split('-'); 
-                                if (dateParts.length === 3) {
-                                    issueDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; 
-                                }
+                                if (dateParts.length === 3) { issueDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; }
                                 break;
                             }
                         }
-
                         let fCar = cleanNumber;
                         if (cleanNumber.length === 7) fCar = cleanNumber.substring(0,2) + '-' + cleanNumber.substring(2,5) + '-' + cleanNumber.substring(5,7);
                         if (cleanNumber.length === 8) fCar = cleanNumber.substring(0,3) + '-' + cleanNumber.substring(3,5) + '-' + cleanNumber.substring(5,8);
-
-                        resBox.innerHTML = `
-                            <div class="status-success-card">
-                                <div class="status-header">✓ מאושר: קיים תו נכה פעיל</div>
-                                <div class="plate-box">
-                                    <div class="plate-blue-strip">
-                                        <div class="flag-box"><div class="flag-stripe"></div><div class="flag-star">✡</div><div class="flag-stripe"></div></div>
-                                        <div class="il-text"><span class="il-text-en">IL</span><span class="il-text-he">ישראל</span></div>
-                                    </div>
-                                    <div class="plate-num" dir="ltr">${fCar}</div>
-                                </div>
-                                <div class="issue-date">תאריך הפקה: <strong dir="ltr">${issueDate}</strong></div>
-                            </div>
-                        `;
+                        resBox.innerHTML = `<div class="status-success-card"><div class="status-header">✓ מאושר: קיים תו נכה פעיל</div><div class="plate-box"><div class="plate-blue-strip"><div class="flag-box"><div class="flag-stripe"></div><div class="flag-star">✡</div><div class="flag-stripe"></div></div><div class="il-text"><span class="il-text-en">IL</span><span class="il-text-he">ישראל</span></div></div><div class="plate-num" dir="ltr">${fCar}</div></div><div class="issue-date">תאריך הפקה: <strong dir="ltr">${issueDate}</strong></div></div>`;
                     } else { resBox.innerHTML = '<div class="msg-error">לא נמצא תו נכה פעיל לרכב זה</div>'; }
                 } else { resBox.innerHTML = '<div class="msg-error">לא נמצא תו נכה פעיל לרכב זה</div>'; }
             }).catch(e => { resBox.innerHTML = '<div class="msg-error">שגיאת תקשורת מול המאגר.</div>'; });
         }
 
 
-        // === לוגיקת אנשי קשר (הקוד המקורי המדויק) ===
-        const contactsData = [
-            { name: "איזוק משלט", phone: "08-9776410" }, { name: "הוד לוי - קצין חקירות מסובים", phone: "050-6273380" }, { name: "אלי דונטי - צילום תיקים חדרה", phone: "052-2263927" }, { name: "אלמז מנגיסטו - חדשות 10", phone: "054-5656228" }, { name: "יעל מורג - תובעת תעבורה תל אביב רל\"ת", phone: "050-6271029" }, { name: "אלירן לוי - עורך דין", phone: "050-9000904" }, { name: "שי שיבר - תביעות תעבורה תל אביב / בת ים", phone: "052-3335266" }, { name: "גלעד ישראל - קצין אסירים מגרש הרוסים", phone: "050-4062997" }, { name: "תמיר אלפי - רמ\"ד תביעות תעבורה ב\"ש / חדרה", phone: "050-6271106" }, { name: "אירנה פיין - עורך דין", phone: "050-3048949" }, { name: "בועז מור - צילום ותיאום פגישות תביעות ת\"א", phone: "058-5959525" }, { name: "יפתיאל - חוקר באר שבע", phone: "054-4402976" }, { name: "רינת - רמ\"ח קרית מלאכי", phone: "050-6270708" }, { name: "מאיה - מכינה את\"ן תל אביב / תביעות", phone: "050-5074455" }, { name: "גור צור - עורך דין תביעות תעבורה אילת", phone: "052-2395963" }, { name: "שי חיון - תביעות תל אביב פלילי", phone: "050-8335317" }, { name: "ענבל פרץ מימון - תביעות תעבורה מרכז / רחובות", phone: "050-2585009" }, { name: "רחל סימון סבג - תביעות נגב", phone: "050-5070864" }, { name: "שלומית - פגישות ת. לכיש", phone: "050-5071684" }, { name: "אורית פרידמן - סנ\"צ ראשת מפנ\"א", phone: "050-6274731" }, { name: "קובי לוי - שליחויות ירושלים (דרך יצחק בן חמו)", phone: "053-7115522" }, { name: "משרד רישוי ישיר", phone: "02-6663054" }, { name: "אלמז צאייג - תובעת תעבורה פתח תקווה", phone: "054-3148008" }, { name: "נזים איסקנדר - בוחן שרון", phone: "050-5078453" }, { name: "לירון שטרית - עורך דין פמ\"מ", phone: "050-6117048" }, { name: "טל ממן - תביעות תעבורה פתח תקווה", phone: "050-9884882" }, { name: "לילי שרגא - משרד הרישוי", phone: "054-6149086" }, { name: "לירון חזי - עוזרת משפטית השופט בועז", phone: "052-6176931" }, { name: "פקס בימ\"ש תעבורה חדרה", phone: "04-6327570" }, { name: "גבי ברבי - גבריאל מומחה צמיגים", phone: "08-6233139" }, { name: "פמ\"ד הדס עמר", phone: "054-6758589" }, { name: "ליאת פלג (קורצקי) - עורך דין פמ\"מ", phone: "050-6217009" }, { name: "ליאור פיבין - משטרת זבולון", phone: "053-5256988" }, { name: "אימן מריחאת - בוחן חדרה", phone: "050-5065978" }, { name: "דנה אלירז - עורך דין תובעת בת ים", phone: "054-6928222" }, { name: "קינן גרינשפון - קצין בוחנים ימת\"א שפלה", phone: "050-5073704" }, { name: "שלמה ריף - תרגומים", phone: "054-5389780" }, { name: "ענת לינדר / לינדנר", phone: "050-6271145" }, { name: "נתי טוויטו", phone: "050-3038381" }, { name: "רון לוינטל - עורך דין", phone: "054-4273900" }, { name: "משה שמיר - עורך דין", phone: "050-5631722" }, { name: "אבי ביטון - עורך דין (פמ\"ד/פמ\"מ)", phone: "050-6217472" }, { name: "ערן ברכה - בוחן נגב", phone: "050-5067668" }, { name: "אמיר טיטונוביץ", phone: "054-4211297" }, { name: "ד״ר מולי לינדר - פסיכולוג לערר מרב\"ד", phone: "054-4699535" }, { name: "מוטי בוזגלו - שלוחת בוחנים תל אביב", phone: "050-5072403" }, { name: "עוזרי פוליגרף", phone: "054-4571924" }, { name: "ערן צנעני - תובע חיפה", phone: "050-5073461" }, { name: "רעות - תובעת אשדוד", phone: "050-4216766" }, { name: "אלה כנה - פלילי (ימת\"א)", phone: "050-5069386" }, { name: "מלי בן זינו - תביעות עכו", phone: "050-2443391" }, { name: "ד״ר אריאל זילברשטיין - פסיכיאטר", phone: "050-2065837" }, { name: "אלכסי באן", phone: "054-5936585" }, { name: "אפרת יהב - מזכירה פרילנסרית", phone: "054-5359811" }, { name: "מידד אזרזר - תובע תעבורה חדרה פ\"ת", phone: "050-7217216" }, { name: "נופית גנון קינן - תובעת תעבורה תל אביב", phone: "054-4654004" }, { name: "אליהו כהן - תובע ירושלים", phone: "053-2287897" }, { name: "קרן בר מנחם - ראש מח\"ש", phone: "03-6970198" }, { name: "מזי ברכה - קצינה לב ת״א", phone: "050-6790343" }, { name: "רועי טולדנו - בוחן ראש בוחנים ת\"א", phone: "050-5073363" }, { name: "אושרי - קצין קישון", phone: "054-7921422" }, { name: "מגדי - חוקר תחנת לב תל אביב", phone: "054-9496211" }, { name: "ג'לאל עוידה - ראש שלוחת תעבורה נצרת", phone: "050-8444466" }, { name: "רן פורס מזור", phone: "050-9419940" }, { name: "דיאנה פיניאן", phone: "09-7456038" }, { name: "פלאח פלאח - תובע תביעות צפת", phone: "050-8556375" }, { name: "מיכל אלון - מזכירות תביעות תעבורה ירושלים", phone: "050-5069652" }, { name: "גיא רוש - קצין אסירים ניצן", phone: "050-6075007" }, { name: "תייסיר - פ\"ת ירושלים", phone: "050-5072967" }, { name: "משה דוד - צילום תיקים ב\"ש", phone: "054-3099848" }, { name: "רות בשארי - תובעת", phone: "054-3979680" }, { name: "סברינה ג׳רבי - מזכירה עליון", phone: "050-6255752" }, { name: "דר עופרה לובסקי - פסיכולוגית", phone: "052-3318153" }, { name: "אייל חכימיאן יעיל אדם - עליון ירושלים", phone: "053-7577979" }, { name: "מראם שמשום - תובעת חיפה", phone: "050-8866144" }, { name: "עו״ד אבי ג׳אן", phone: "052-5815585" }, { name: "יהודית זרגרי - ירושלים", phone: "050-5307670" }, { name: "דניאל דנילוביץ - ליווי נחשון", phone: "050-6091495" }, { name: "שי עברו - קצינת חקירות לב ת\"א", phone: "050-9573334" }, { name: "אוסמה מולא - עו״ד תובע", phone: "052-6634392" }, { name: "דוקטור רפי שטרייכר", phone: "052-3698721" }, { name: "רותם - תובעת פתח תקווה", phone: "054-7829362" }, { name: "ממויה - תביעות תל אביב", phone: "050-8533037" }, { name: "עידו אוזן - רכז חקירות", phone: "054-7775563" }, { name: "אייל סמואל - תובע ירושלים", phone: "052-6654322" }, { name: "מירב - תובעת נתניה", phone: "052-2224212" }, { name: "אלי מוסרי - תעבורה ירושלים", phone: "050-6274436" }, { name: "פמת\"א גיא גורן", phone: "03-6970031" }, { name: "עלאא שאהין - תובע", phone: "050-5077314" }, { name: "אלמוג אזולאי - עורך דין", phone: "050-9276414" }, { name: "טלי - תביעות באר שבע", phone: "050-6270970" }, { name: "רות גדרון - עורכת דין", phone: "054-4713923" }, { name: "לינוי שמש - תובעת פתח תקווה", phone: "055-8833624" }, { name: "פארס - תובע אשדוד", phone: "054-6965653" }, { name: "עו״ד שירן חמדי - דיני עבודה", phone: "052-3140807" }, { name: "יגאל אוחיון - קצין בוחנים", phone: "08-6464650" }, { name: "מנאר בוטרוס - טוען כנרת", phone: "052-8151264" }, { name: "חנא קופטי", phone: "050-6271127" }, { name: "ליאת גלבוע - פמ\"מ", phone: "050-6217061" }, { name: "תמיר - תובע תל אביב פלילי", phone: "050-6271038" }, { name: "יורם פוירשטיין", phone: "050-3017007" }, { name: "גבי - מקור הצמיג", phone: "052-8981321" }, { name: "סלימאן אל ג'מעין - בוחנים נגב", phone: "050-5067874" }, { name: "מוקד דוחות מפנ\"א", phone: "*9666" }, { name: "שי נצר - תובע לכיש", phone: "052-5551534" }, { name: "שחר מנדלמן - עו״ד פלילי", phone: "050-5522334" }, { name: "אופיר בן סימון - קצין חקירות", phone: "050-5077450" }, { name: "הלנה / אלנה מולר", phone: "050-6271140" }, { name: "אלי ברמי - עו״ד", phone: "050-6274620" }, { name: "תובע מאיר מלא", phone: "050-7720806" }, { name: "גיא סגל - עו״ד", phone: "052-2737775" }, { name: "רוני שליחויות - אילת", phone: "050-5069370" }, { name: "ליבנת בן חיים - נוער נגב", phone: "08-6382731" }, { name: "גלעד שלמור", phone: "052-3569102" }, { name: "עקיבא דוד - שב\"ס", phone: "050-4074201" }, { name: "גל נוימן", phone: "054-3318771" }, { name: "אוריאן בן חמו - רמ\"ח אריאל", phone: "050-8923287" }, { name: "בועז - חוקר פרטי", phone: "050-5363481" }, { name: "לבנת פמת\"א מלמד", phone: "050-6216420" }, { name: "בתיה רביבו - תביעות ת\"א", phone: "050-5063681" }, { name: "עמרי צובינסקי - רכז בוחנים", phone: "050-5076021" }, { name: "הגר קוקה - תעבורה פ\"ת", phone: "054-4903331" }, { name: "אוריין - תובעת מרכז", phone: "050-5519392" }, { name: "מהדי חרב - קצין אסירים צלמון", phone: "050-6279815" }, { name: "תומר אברמוביץ - רל\"ת פתח תקוה", phone: "050-6271131" }, { name: "צביקה מוזס - בוחן תאונות", phone: "050-6273870" }, { name: "שירלי עמר - קצינת אסירים הדרים", phone: "050-6278271" }, { name: "מנשה יעקב - מתנ\"א", phone: "050-5071779" }, { name: "מירי שילר - שחזור תאונות דרכים", phone: "050-6934024" }, { name: "דר פוקס - פסיכיאטר משפטי", phone: "054-7290952" }, { name: "דלקי חוסיין - תביעות ירושלים", phone: "054-3926609" }, { name: "אביהו פטיטו - תובע נצרת", phone: "052-5566452" }, { name: "אמיתי צובינסקי - רכז בוחנים", phone: "052-8315311" }, { name: "תומר יצחקי - תעבורה נצרת/עכו", phone: "052-6368089" }, { name: "שגיא בוסנינו - סגן תעבורה נצרת", phone: "050-5074642" }, { name: "תרז - תובעת נצרת", phone: "050-6117094" }, { name: "תמר מצליח - רל\"ת ת\"א", phone: "050-5065395" }, { name: "זהבית - מזכירות פלילית ת\"א", phone: "050-6255614" }, { name: "ליאור דוד - תובע עכו", phone: "052-5557898" }, { name: "אלון - שליחויות", phone: "055-5539510" }, { name: "בת אל - תיאום ביקור אשל", phone: "050-4063874" }, { name: "עופר גולן - צילום תיקים מרכז", phone: "054-8017080" }, { name: "סרגיי מרגולין - עורך דין", phone: "054-7855387" }, { name: "פרדי הרשקוביץ - גולני", phone: "050-8510076" }, { name: "מירי ארזי - גרפולוגית משפטית", phone: "054-4281211" }, { name: "ניר עלמי - ראש תביעות גליל", phone: "050-5077411" }, { name: "צח - תביעות בת ים", phone: "054-6611645" }, { name: "פקס מחוזי לוד", phone: "08-6683476" }, { name: "ויקטוריה בן מאיר - רל\"ת רמלה", phone: "050-3993300" }, { name: "יונת ברנדס הראל - תביעות לכיש", phone: "054-5556304" }, { name: "עדיה גור - תובעת פתח תקווה", phone: "054-7959545" }, { name: "חלבן יוסף - פסיכיאטר", phone: "050-6261548" }, { name: "נורית זקן - נוער בת ים", phone: "050-6233225" }, { name: "נופר כץ - מחדרה", phone: "054-8028150" }, { name: "מירה הופנר - תובעת פתח תקווה", phone: "054-2428342" }, { name: "ליאם קורסיה - תביעות נגב", phone: "054-2232993" }, { name: "מורן אטיה - תביעות עורך דין", phone: "050-3311656" }, { name: "ליאור גרכט - ימ\"ר מרכז", phone: "050-6272878" }, { name: "גרר שי ראשל\"צ - מוקד ארצי", phone: "1700501213" }, { name: "גלעד קציר - פמ\"מ פלילי", phone: "052-3537726" }, { name: "רמי ביאזי - עורך דין", phone: "054-4456003" }, { name: "קובי טפירו - אוה\"ק", phone: "050-4074140" }, { name: "ריקי בר און - קצינת אסירים השרון", phone: "050-6279530" }, { name: "ואדים סיגל - פרקליטות דרום", phone: "050-6217431" }, { name: "מאיר מדקר - בוחן חיפה", phone: "050-5077932" }, { name: "אליזבט - מזכירות עופר", phone: "054-6970550" }, { name: "ניצן בלולו - תובע ירושלים", phone: "058-5077270" }, { name: "גל שרגורודסקי", phone: "054-7747194" }, { name: "רויטל - תעבורה צפת", phone: "050-5063423" }, { name: "מאיר סויסה", phone: "052-2399713" }, { name: "שב\"ס מיון מוקדם (ניצה)", phone: "08-9193314" }, { name: "יבגני - מרכז גמילה ראשון לציון", phone: "052-8437690" }, { name: "טוען איילון - ליאור", phone: "050-7435613" }, { name: "איזוק אלקטרוני (כללי)", phone: "08-9776400" }, { name: "יאיר ארן", phone: "052-4204696" }, { name: "קורל מרקוביץ - תביעות פ\"ת", phone: "050-8674347" }, { name: "שלומי צדוק - שליח", phone: "058-7799916" }, { name: "לורנה חורי - תובעת חיפה/באר", phone: "054-6618282" }, { name: "אייל אפטבי", phone: "050-5067410" }, { name: "פיטר גלמן - בוחן נגב", phone: "050-5067570" }, { name: "עטיה דאמוני - תובע חיפה רל\"ת", phone: "050-5069908" }, { name: "שמעון לוי - פמ\"מ", phone: "050-6216233" }, { name: "חגבי בועז - את\"ן ת\"א", phone: "050-5075575" }, { name: "אבי - עובד מזכירות עליון", phone: "050-6256555" }, { name: "אבי - תביעות ירושלים", phone: "050-6270593" }, { name: "שגית בידרמן", phone: "052-3100090" }, { name: "אבי שניידר - תובע נצרת", phone: "050-2596886" }, { name: "פקס מזכירות פלילי ירושלים", phone: "02-5010290" }, { name: "שני ברדה - תביעות תעבורה צפת", phone: "050-5077292" }, { name: "רוית זיכרמן (כהן) - רל\"ת ב\"ש", phone: "050-6270964" }, { name: "הילה אדלמן - מח\"ש", phone: "050-6216507" }, { name: "טוביה ארנרייך - תובע תעבורה ירושלים", phone: "050-6271067" }, { name: "ד\"ר דריו ורטניק - טוקסיקולוג מומחה", phone: "054-2131782" }, { name: "מעוז חזן - חוקר משטרתי", phone: "050-5075071" }, { name: "קרן דסקין - ראש תביעות נוער מרכז", phone: "050-6271056" }, { name: "חגי כהן - בוחן אריאל", phone: "050-5072818" }, { name: "לורן - עו״ד דיני הגירה", phone: "054-3050428" }, { name: "נופר - תובעת לכיש", phone: "050-4644397" }, { name: "דגנית שחר - תובעת לכיש/אשדוד", phone: "050-5074215" }, { name: "רוזי - תביעות נגב", phone: "050-7955580" }, { name: "ליאור בוקובזה - מתביעות", phone: "050-6271102" }, { name: "אמיתי עומסי - טוען מעצרים נגב", phone: "050-5063416" }, { name: "יעל כהן - תביעות תעבורה ירושלים", phone: "052-8972871" }, { name: "סיסי אמויאל - תביעות קריית שמונה", phone: "050-6270281" }, { name: "רם צוברי - בזק איזוק", phone: "050-6776959" }, { name: "מייק קיגל - רמ\"ח גבעתיים", phone: "050-6705489" }, { name: "איתן סטולר - עורך דין", phone: "052-2846936" }, { name: "מוקד תביעות ארצי", phone: "*9647" }, { name: "קים שריקי - תובעת רחובות", phone: "052-4715485" }, { name: "ערן לוף - תובע נצרת", phone: "052-4677659" }, { name: "גילי תמיר - עו\"ס", phone: "054-4887838" }, { name: "רותם מנשה - מתאמת השרון", phone: "050-3607914" }, { name: "עדי נויפלד - תובעת", phone: "054-9989063" }, { name: "יפים וקסלר - עורך דין", phone: "050-8233565" }, { name: "חניאל - בוחן", phone: "052-5856464" }, { name: "ענבל בן שעיה - משרד הרישוי", phone: "02-6663055" }, { name: "אריאל פס - רל\"ת נגב", phone: "050-6270725" }, { name: "עודד נגב - תובע אילת", phone: "050-6274858" }, { name: "לישב בוחבוט דהן - תובעת נגב", phone: "050-2762003" }, { name: "חן יבין - תביעות לכיש", phone: "050-5070661" }, { name: "נאשד קדרי - תובע נתניה", phone: "054-4402906" }, { name: "תביעות תעבורה מרכז", phone: "03-7421955" }, { name: "ממונה עבודות שירות עונים", phone: "074-7831272" }, { name: "בתיה קוליץ - מח\"ש", phone: "050-6217694" }, { name: "זינגר - רכז בוחנים שרון", phone: "050-2129999" }, { name: "ממונה על עבודות שירות דרום", phone: "074-7831297" }, { name: "מעיין דבש - קרימינולוגית", phone: "052-3923928" }, { name: "ישראל - שליח אשדוד", phone: "052-3040488" }, { name: "פמתא חדש", phone: "073-3924128" }, { name: "ריקי כליף - פמ\"מ", phone: "050-6217471" }, { name: "אליאב - בוחנים אשדוד", phone: "050-5072065" }, { name: "ד\"ר רובינסון - עבודות שירות", phone: "03-5193018" }, { name: "אפי שוורץ - בוחן תנועה", phone: "054-4384223" }, { name: "מוטי רייזמן - תובע ת\"א", phone: "050-6091770" }, { name: "תומר לביא - תובע תל אביב", phone: "050-6271046" }, { name: "גיא - צילום תיקים מרכז", phone: "050-5760984" }, { name: "ירון דוידה - שליח אשדוד", phone: "050-7236818" }, { name: "חמ\"ל כלא 10", phone: "052-8135137" }, { name: "רינה מירון - עורכת דין", phone: "050-3600630" }, { name: "ליאת שטיינברג - עו״ד", phone: "054-2392323" }, { name: "חופית אבוקסיס נבו", phone: "050-9959995" }, { name: "אביב - פרקליטות תל אביב", phone: "050-9140280" }, { name: "רינת - משרד הרישוי", phone: "08-6406104" }, { name: "אביחי זריהן - שליחויות", phone: "052-4800866" }, { name: "קובי פלג - מתמחה", phone: "050-5075010" }, { name: "שאול בלגי", phone: "054-4820800" }, { name: "הדר מועלם - עורכת דין", phone: "054-2223235" }, { name: "חיים ביטון - תובע ת\"א", phone: "050-4499096" }, { name: "רישוי צה\"ל - ווטסאפ", phone: "052-4189534" }, { name: "יוסי זכות", phone: "050-8543563" }, { name: "ירון - קצין תנועה חולון", phone: "050-6271025" }, { name: "שני ששון", phone: "050-3450245" }, { name: "ערן צמיר", phone: "050-5072279" }, { name: "מאיר מודן - פוליגרף", phone: "054-6804040" }, { name: "תפארת שלמה - רכזת ראש העין", phone: "050-5078654" }, { name: "רותם זקן", phone: "050-5067227" }, { name: "יוסי רגב - חקירות לב הבירה", phone: "054-9937733" }, { name: "פקס מחוז ירושלים", phone: "074-7937862" }, { name: "אשר אלקלעי פרי", phone: "053-2755468" }, { name: "משל בית דגן - מתנ\"א", phone: "03-9685609" }, { name: "ביבי אמנון", phone: "050-5077056" }, { name: "שירן - קצינת כליאה גבעון", phone: "050-6096097" }, { name: "לירז - תביעות תל אביב", phone: "050-6271315" }, { name: "Chanel Ben Simon", phone: "054-3081093" }, { name: "מרגלית כהן - עורכת דין", phone: "050-6278556" }, { name: "עבד - מרכז אמל", phone: "050-3070766" }, { name: "שרית כהן - תמלול ותרגום", phone: "052-7090577" }, { name: "אחמד - מזכיר ראשי חיפה", phone: "050-6255619" }, { name: "איציק פפיסמדו - בוחן תנועה", phone: "050-7740813" }, { name: "דנה נעים - תובעת באר שבע", phone: "053-5210109" }, { name: "נוי שדה - תובעת נתניה", phone: "054-7727086" }, { name: "חגי דברת - בוחן שפלה", phone: "054-2792727" }, { name: "יאיר ירדני - בוחנים תל אביב", phone: "058-7651316" }, { name: "גדי וייסמן", phone: "050-5292509" }, { name: "לי לוי שמואלי - תביעות תל אביב", phone: "052-6112881" }, { name: "ליאן קלר - ימ\"ר את\"ן", phone: "052-4781643" }, { name: "משה וקרט - עו\"ד דיני עבודה", phone: "052-8603226" }, { name: "קובי יעקב - מגרש הרוסים", phone: "050-4074486" }, { name: "ואדים / ודים סיגל", phone: "050-6217431" }, { name: "הונאה ת\"א", phone: "050-5070643" }, { name: "חן קוגל - מכון פתולוגי", phone: "050-6222882" }, { name: "אלדד (עו\"ד)", phone: "052-7270127" }, { name: "דורון בלדינגר - מומחה וידאו וסאונד", phone: "054-4212424" }, { name: "עדן - תובעת תעבורה לכיש", phone: "054-2097771" }, { name: "שרית מנשה - קצינת אסירים רימונים", phone: "050-4062078" }, { name: "ניר קוסטיקה", phone: "052-6004605" }, { name: "אלי מנטסון - עו״ד תובע", phone: "052-3652777" }, { name: "אוהד כהן - פרקליט צפון", phone: "052-6883800" }, { name: "עלי כעביה - רל\"ת עכו", phone: "050-6271847" }, { name: "הילה אליהוא פיטוסי", phone: "050-6271119" }, { name: "ת\"א תיאום נווה צדק (כלא)", phone: "073-3103725" }, { name: "הילאני - ר' שלוחת חיפה", phone: "050-6270063" }, { name: "מאיר - תובע ירושלים", phone: "050-5071085" }, { name: "אליעזר איפרגן - צילומים", phone: "050-6930021" }, { name: "רפי ליאון", phone: "054-5303888" }, { name: "עדי קרן - ראש שלוחת תביעות לכיש", phone: "050-6270722" }, { name: "דוד מיכה דוד - עו״ד", phone: "052-3551861" }, { name: "ממונה על עבודות שירות", phone: "08-9775097" }, { name: "ממונה עבודות שירות מחוז מרכז", phone: "08-9787047" }, { name: "תביעות תעבורה לכיש (אשדוד)", phone: "08-9781471" }, { name: "רוני משיח - ימ\"ר ת\"א", phone: "050-7336348" }, { name: "שגיב - מנהלת איזוק", phone: "050-4062498" }, { name: "מתן - מתמחה אשדוד", phone: "050-4778271" }, { name: "קרן ספיר - אלופה בדיני עבודה", phone: "050-8260399" }, { name: "יוחנן - קצין אסירים אוהלי קידר", phone: "050-4062074" }, { name: "יונה אמיתי - פרופ'", phone: "052-8194040" }, { name: "מרים פרץ", phone: "054-6556696" }, { name: "מיטל - תובעת לכיש", phone: "050-5661650" }, { name: "דנה דוד", phone: "054-4629639" }, { name: "דולי מאזל - פמ\"י עו\"ד", phone: "052-3425543" }, { name: "פמ\"מ מזכירות פלילי", phone: "073-3923819" }, { name: "יובל שי דהן - פמ\"מ", phone: "050-3299999" }, { name: "בוריס וולפסון", phone: "050-5074567" }, { name: "דניאל ליכט - תובע ירושלים", phone: "052-4328712" }, { name: "תומר בן חמו - פלילי טבריה", phone: "050-5077316" }, { name: "אריאל טויטו - נחשון", phone: "050-6278316" }, { name: "גדי בש", phone: "050-5078630" }, { name: "טל גרלוי - תביעות פ״ת", phone: "052-6077782" }, { name: "ולדי - חוקר ת\"ד", phone: "052-2742070" }, { name: "כפיר ניסים", phone: "050-5075666" }, { name: "אשר פרי - תביעות תעבורה", phone: "052-3479975" }, { name: "פז שוורץ - חוקר פרטי", phone: "054-4674470" }, { name: "סימה מזכירה - מחוזי לוד/ירושלים", phone: "050-6255823" }, { name: "הדס פרידמן - ממונה תביעות ת״א", phone: "050-6272454" }, { name: "מוריה ברקו", phone: "052-5257433" }, { name: "רומן קוגן - הגירה", phone: "052-6494238" }, { name: "מחלקת האסיר מאיה", phone: "08-9194038" }, { name: "תהילה מדמוני - ק. אסירים איילון", phone: "050-6279352" }, { name: "הדס קליין - מח״ש עו״ד", phone: "052-4702902" }, { name: "יורי - בוחן שפלה", phone: "050-5070618" }, { name: "מרק - טוען גלילות", phone: "050-5072696" }, { name: "רועי בן חמו", phone: "054-9412664" }, { name: "דריו ורטניק - טוקסיקולוג", phone: "077-2304256" }, { name: "פמ\"מ חדש", phone: "073-3923853" }, { name: "דפנה ינוביץ - תביעות מרכז", phone: "050-6275750" }, { name: "ס. ריי - מרב\"ד", phone: "050-9502070" }, { name: "אופיר וייס", phone: "050-5076189" }, { name: "אלי דיין - מומחה טביעות אצבע", phone: "054-9090380" }, { name: "אורית בן עוזרי", phone: "050-8100074" }, { name: "רועי רוזן עו״ד", phone: "052-2891340" }, { name: "יובל אראל", phone: "052-4421142" }, { name: "ע. שרית סקוזה", phone: "050-2599289" }, { name: "גבי פאר - פמ\"מ", phone: "052-3828123" }, { name: "סיגל אבישר - ועדות שחרורים", phone: "050-6256983" }, { name: "תיאום ניצן", phone: "074-7837251" }, { name: "סברין - תובעת נצרת", phone: "050-2228246" }, { name: "חנא ארשיד - תובע עכו", phone: "052-5807775" }, { name: "אופל נגב", phone: "052-2769011" }, { name: "לידן ניסים", phone: "052-4043711" }, { name: "דורי רובינשטיין - מומחה סרטונים", phone: "050-8566666" }, { name: "הודה חמיסה רושרוש", phone: "050-6274559" }, { name: "יובל רום - קצין ת\"א", phone: "054-4833123" }, { name: "נעים זיתוני - צמיגים מומחה", phone: "050-5619050" }, { name: "גלי חצב - פמת\"א", phone: "050-6216845" }, { name: "אבנר רוזנגרטן - מכון למדע פורנזי", phone: "050-4447487" }, { name: "רונן שמש - פוליגרף", phone: "050-5301522" }, { name: "מדינה מלקמו - קצין אסירים גבעון", phone: "050-4063977" }, { name: "ויקטור איפראימוב", phone: "054-6575777" }, { name: "מחלקת זימונים ארצית שב\"ס", phone: "02-6225464" }, { name: "נועם אלון - חלופות מעצר", phone: "050-7691614" }, { name: "שני צילומים", phone: "053-7633813" }, { name: "ח\"כ יעקב מרגי", phone: "050-4963737" }
-        ];
-
+        // === לוגיקת אנשי קשר (Google Sheets) ===
         const expertInput = document.getElementById('expertSearchInput');
         const expertResultsContainer = document.getElementById('expertResultsContainer');
         const noExpertResults = document.getElementById('noExpertResults');
+        const loadingIndicator = document.getElementById('loadingExperts');
+        let contactsData = [];
 
         const cleanString = (str) => str.toLowerCase().replace(/["'״׳\-]/g, '').trim();
 
-        // אתחול כרטיסיות מומחים לזיכרון (מהיר כברק כמו שבנית)
-        contactsData.forEach(contact => {
-            const cleanPhone = contact.phone.replace(/\D/g, '');
-            const isMobile = cleanPhone.startsWith('05');
-            const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
-            
-            const card = document.createElement('div');
-            card.className = 'expert-card offense-card';
-            card.setAttribute('data-search', cleanString(contact.name));
-            card.setAttribute('data-phone', cleanPhone);
-            
-            let actionsHTML = `<a class="action-btn btn-call" href="tel:${cleanPhone}"><svg class="btn-icon"><use href="#icon-phone"></use></svg> חיוג</a>`;
-            if (isMobile) {
-                actionsHTML += `<a class="action-btn btn-wa" href="${waLink}" target="_blank"><svg class="btn-icon"><use href="#icon-wa"></use></svg> WhatsApp</a>`;
+        // פונקציה למשיכת הנתונים בזמן אמת מהגוגל שיטס
+        async function fetchContactsFromSheets() {
+            if (GOOGLE_SHEET_API_URL === "הדבק_כאן_את_הקישור" || !GOOGLE_SHEET_API_URL.includes("script.google.com")) {
+                loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאה: חסר קישור ל-Google Sheets בתוך קוד האתר.</span>';
+                return;
             }
 
-            card.innerHTML = `
-                <div class="contact-name">${contact.name}</div>
-                <div class="contact-phone"><svg><use href="#icon-phone"></use></svg> ${contact.phone}</div>
-                <div class="actions">${actionsHTML}</div>
-            `;
-            expertResultsContainer.appendChild(card);
-        });
+            try {
+                const response = await fetch(GOOGLE_SHEET_API_URL);
+                contactsData = await response.json();
+                
+                // העלמת הודעת הטעינה ושחרור תיבת החיפוש
+                loadingIndicator.style.display = 'none';
+                expertInput.disabled = false;
+                
+                // יצירת הכרטיסיות
+                renderContacts();
+            } catch (error) {
+                console.error("Error fetching contacts:", error);
+                loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאת תקשורת מול Google Sheets. ודא שהרשאות הקובץ מוגדרות ל"כל אחד".</span>';
+            }
+        }
 
-        // פונקציית סינון מומחים
+        // בניית הכרטיסיות ב-HTML
+        function renderContacts() {
+            expertResultsContainer.innerHTML = ''; // ניקוי
+            contactsData.forEach(contact => {
+                const cleanPhone = contact.phone.replace(/\D/g, '');
+                const isMobile = cleanPhone.startsWith('05');
+                const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
+                
+                const card = document.createElement('div');
+                card.className = 'expert-card offense-card';
+                card.setAttribute('data-search', cleanString(contact.name));
+                card.setAttribute('data-phone', cleanPhone);
+                
+                let actionsHTML = `<a class="action-btn btn-call" href="tel:${cleanPhone}"><svg class="btn-icon"><use href="#icon-phone"></use></svg> חיוג</a>`;
+                if (isMobile) {
+                    actionsHTML += `<a class="action-btn btn-wa" href="${waLink}" target="_blank"><svg class="btn-icon"><use href="#icon-wa"></use></svg> WhatsApp</a>`;
+                }
+
+                card.innerHTML = `
+                    <div class="contact-name">${contact.name}</div>
+                    <div class="contact-phone"><svg><use href="#icon-phone"></use></svg> ${contact.phone}</div>
+                    <div class="actions">${actionsHTML}</div>
+                `;
+                expertResultsContainer.appendChild(card);
+            });
+        }
+
+        // פונקציית סינון החיפוש בזמן אמת
         function handleExpertSearch() {
             const query = expertInput.value.trim();
             const cards = expertResultsContainer.querySelectorAll('.expert-card');
@@ -480,7 +466,9 @@ html, body {
 
         expertInput.addEventListener('input', handleExpertSearch);
 
+        // הפעלת משיכת הנתונים ברגע שהדף עולה
+        fetchContactsFromSheets();
+
     </script>
 </body>
 </html>
-
