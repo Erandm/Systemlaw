@@ -13,7 +13,14 @@
         .header{text-align:center;margin-bottom:20px;}
         .logo-container{margin-bottom:10px;width:100%;display:flex;justify-content:center;}
         .logo-container img{max-width:90%;height:auto;opacity:0.9;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));}
-        h1{position:absolute;left:-9999px;}
+        html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+}
+h1 {
+    display: none;
+}
 
         .tabs{display:flex;justify-content:center;gap:8px;margin-bottom:25px;}
         .tab-btn{flex:1;padding:12px 5px;font-size:14px;font-weight:bold;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:8px;cursor:pointer;transition:0.3s; white-space: nowrap;}
@@ -467,5 +474,6 @@
     </script>
 </body>
 </html>
+
 
 
