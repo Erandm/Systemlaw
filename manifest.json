@@ -1,0 +1,15 @@
+{
+  "name": "מערכת עו״ד ערן דמרי",
+  "short_name": "מערכת משפטית",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#f2cb05",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
