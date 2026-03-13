@@ -10,17 +10,56 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="מערכת עו״ד">
     <link rel="apple-touch-icon" href="logo.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&family=Assistant:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {--primary:#f2cb05;--primary-hover:#d1b004;--danger:#ff4d4d;--success:#2ecc71;--info:#3498db;--bg-color:#121212;--card-bg:#1e1e1e;--text-main:#ffffff;--text-muted:#a0a0a0;--border:#333333; --secondary-blue: #3b82f6; --call-green: #10b981; --wa-green: #25D366;}
         *{box-sizing:border-box;font-family:'Heebo',sans-serif;}
         *:focus{outline:3px solid var(--primary);outline-offset:2px;}
+        
+        html, body { overflow-x: hidden; width: 100%; position: relative; }
         body{background-color:var(--bg-color);color:var(--text-main);margin:0;padding:0;display:flex;justify-content:center;min-height:100vh;}
         .app-container{width:100%;max-width:500px;padding:20px;display:flex;flex-direction:column;position:relative;padding-bottom:140px;}
-        .header{text-align:center;margin-bottom:20px;}
+        .header{text-align:center;margin-bottom:15px;}
         .logo-container{margin-bottom:10px;width:100%;display:flex;justify-content:center;}
         .logo-container img{max-width:90%;height:auto;opacity:0.9;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));}
-        h1{position:absolute;left:-9999px;}
+        h1{display:none;}
+
+        /* כפתור התקנת אפליקציה */
+        .install-btn {
+            display: none; /* מוסתר כברירת מחדל */
+            background-color: var(--success);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: 0.3s;
+        }
+        .install-btn:hover { transform: scale(1.05); }
+        
+        /* חלונית הדרכה לאייפון */
+        .ios-prompt {
+            display: none;
+            background: #2a2a2a;
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+        .ios-prompt svg { vertical-align: middle; margin: 0 4px; fill: var(--primary); }
 
         .tabs{display:flex;justify-content:center;gap:8px;margin-bottom:25px;}
         .tab-btn{flex:1;padding:12px 5px;font-size:14px;font-weight:bold;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:8px;cursor:pointer;transition:0.3s; white-space: nowrap;}
@@ -31,19 +70,11 @@
 
         .search-input-group{display:flex;background:#2a2a2a;border-radius:8px;border:1px solid #444;overflow:visible;margin-bottom:15px;position:relative;}
         .search-input-group:focus-within{border-color:var(--primary);box-shadow:0 0 10px rgba(242,203,5,0.2);}
-        input[type="text"], input[type="search"]{flex-grow:1;padding:16px 20px;font-size:16px;border:none;background:transparent;color:#fff;outline:none;}
+        input[type="text"], input[type="search"]{flex-grow:1;padding:16px 20px;font-size:16px;border:none;background:transparent;color:#fff;outline:none; width:100%;}
         input::placeholder{color:#999;}
         .search-btn{background-color:var(--primary);color:#000;border:none;padding:0 25px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;border-radius:8px 0 0 8px;}
-        .search-btn:hover{background-color:var(--primary-hover);}
 
         .tooltip-container{position:relative;width:100%;display:flex;}
-        .tooltip-container:hover::after{
-            content:"ניתן לבצע חיפוש של עבירה ספציפית, חלק ממנה או סמל הסעיף";
-            position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
-            background:rgba(0,0,0,0.85);color:#fff;padding:6px 12px;border-radius:6px;
-            font-size:13px;white-space:nowrap;opacity:1;transition:0.2s;margin-bottom:5px;z-index:20;border:1px solid var(--primary);
-        }
-
         .search-wrapper{position:relative;z-index:5;}
         .autocomplete-list{position:absolute;top:calc(100% - 10px);left:0;right:0;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.9);max-height:250px;overflow-y:auto;display:none;z-index:100;}
         .autocomplete-item{padding:12px 15px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px;}
@@ -65,20 +96,19 @@
         .badge.violation{background:rgba(52,152,219,0.15);color:var(--info);border:1px solid rgba(52,152,219,0.3);}
         .badge.court{background:#e74c3c;color:#fff;border:1px solid #c0392b;}
         .badge.court.blink{animation:blinker 1.2s infinite alternate;}
-        @keyframes blinker{0%{opacity:1;box-shadow:0 0 10px #e74c3c;}100%{opacity:0.6;}}
-
+        
         .badge.warning-yes{background:rgba(46,204,113,0.1);color:#2ecc71;border:1px dashed #2ecc71;width:100%;display:block;text-align:center;margin-top:5px;font-size:14px;}
         .badge.warning-no{background:rgba(231,76,60,0.1);color:#e74c3c;border:1px dashed #e74c3c;width:100%;display:block;text-align:center;margin-top:5px;font-size:14px;}
 
         .data-row{margin-bottom:10px;}
         .label{font-size:13px;color:var(--primary);margin-bottom:2px;font-weight:bold;}
         .value{font-size:15px;color:#fff;line-height:1.4;}
-        .status-msg{text-align:center;padding:15px;color:var(--text-muted);display:none;background:var(--card-bg);border-radius:8px;border:1px solid var(--border);}
+        .status-msg{text-align:center;padding:15px;color:var(--text-muted);display:none;}
 
         .status-success-card{border:1px solid #2ecc71;border-radius:8px;background-color:#1a251f;padding-bottom:20px;overflow:hidden;}
         .status-header{padding:15px;font-size:18px;font-weight:bold;text-align:center;background-color:#2ecc71;color:#000;border-radius:6px 6px 0 0;margin-bottom:20px;}
-        .plate-box{background-color:#ffcc00;border:4px solid #000;border-radius:6px;width:290px;height:65px;margin:0 auto 20px auto;display:flex;flex-direction:row-reverse;align-items:center;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.5);}
-        .plate-blue-strip{background-color:#0038b8;width:40px;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;flex-shrink:0;}
+        .plate-box{background-color:#ffcc00;border:4px solid #000;border-radius:6px;width:290px;max-width:90%;height:65px;margin:0 auto 20px auto;display:flex;flex-direction:row-reverse;align-items:center;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.5);}
+        .plate-blue-strip{background-color:#0038b8;width:40px;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;}
         .flag-box{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;width:18px;height:12px;border-radius:1px;}
         .flag-stripe{width:100%;height:2px;background-color:#0038b8;}
         .flag-star{color:#0038b8;font-size:7px;font-weight:bold;margin:-1px 0;}
@@ -90,7 +120,7 @@
         .issue-date strong{color:var(--primary);}
         .msg-error{background-color:rgba(231,76,60,0.1);color:#e74c3c;padding:15px;border-radius:8px;border:1px solid #e74c3c;font-weight:bold;text-align:center;}
 
-        /* CSS למומחים שנוסף */
+        /* CSS מומחים */
         .expert-card { border-right: 4px solid var(--secondary-blue); display: none; flex-direction: column; }
         .contact-name { font-weight: 800; font-size: 1.2rem; color: var(--primary); line-height: 1.2; margin-bottom: 5px; }
         .contact-phone { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 1.1rem; font-weight: 600; margin-bottom: 15px;}
@@ -109,6 +139,9 @@
     <svg style="display: none;">
         <symbol id="icon-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></symbol>
         <symbol id="icon-wa" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v14h14v-2H5z"/></symbol>
+        <symbol id="icon-share" viewBox="0 0 24 24"><path d="M16 5l-4-4-4 4h3v9h2V5h3zM20 9h-3v2h2v10H5V11h2V9H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V10a1 1 0 00-1-1z"/></symbol>
+        <symbol id="icon-add-home" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
     </svg>
 
     <div class="app-container">
@@ -117,7 +150,17 @@
             <div class="logo-container">
                 <img src="logo.png" alt="לוגו משרד עורכי דין ערן דמרי" onerror="this.src='https://via.placeholder.com/500x120/121212/f2cb05?text=Eran+Damari';">
             </div>
-            <p style="color:var(--primary); font-weight:bold; font-size:18px;">מערכת עזר משפטית</p>
+            
+            <button id="installAppBtn" class="install-btn">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="transform: rotate(180deg);"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                התקן אפליקציה לנייד
+            </button>
+            
+            <div id="iosPrompt" class="ios-prompt">
+                להתקנת האפליקציה באייפון:<br>
+                1. לחץ על כפתור השיתוף בתחתית המסך <svg viewBox="0 0 24 24" width="20" height="20"><use href="#icon-share"></use></svg><br>
+                2. בחר באפשרות <strong>"הוסף למסך הבית"</strong> <svg viewBox="0 0 24 24" width="20" height="20"><use href="#icon-add-home"></use></svg>
+            </div>
         </div>
 
         <div class="tabs">
@@ -169,8 +212,54 @@
         // =======================================================
         // הכנס כאן את הקישור שהעתקת מגוגל Apps Script:
         // =======================================================
-        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzHh9oWMPATuev4sAvEWzvSMXsPZZacISGz33GNrlJ_OZtTISSLHYGxSy4YMhJ6G39_/exec"; 
+        const GOOGLE_SHEET_API_URL = "הדבק_כאן_את_הקישור"; 
         
+        // === רישום Service Worker להתקנת האפליקציה ===
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        // === לוגיקת כפתור ההתקנה ===
+        const installBtn = document.getElementById('installAppBtn');
+        const iosPrompt = document.getElementById('iosPrompt');
+        let deferredPrompt;
+
+        // זיהוי אם המכשיר הוא אייפון/אייפד
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        // זיהוי אם האפליקציה כבר מותקנת (כדי להעלים את הכפתור)
+        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+        if (!isStandalone) {
+            if (isIOS) {
+                // לאייפון נציג את הכפתור שמפעיל הדרכה
+                installBtn.style.display = 'flex';
+                installBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16 5l-4-4-4 4h3v9h2V5h3zM20 9h-3v2h2v10H5V11h2V9H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V10a1 1 0 00-1-1z"/></svg> התקן לאייפון';
+                installBtn.addEventListener('click', () => {
+                    iosPrompt.style.display = iosPrompt.style.display === 'block' ? 'none' : 'block';
+                });
+            } else {
+                // לאנדרואיד/מחשב נאזין לאירוע ההתקנה הרשמי של גוגל
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    installBtn.style.display = 'flex'; // מציג את הכפתור רק אם אפשר להתקין
+                });
+
+                installBtn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            installBtn.style.display = 'none'; // מעלים אחרי התקנה
+                        }
+                        deferredPrompt = null;
+                    }
+                });
+            }
+        }
+
         // === לוגיקת החלפת טאבים ===
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -185,25 +274,11 @@
         let apiRecords = []; 
         let currentFocus = -1;
 
-        const hanaFines = {
-            "2555": "250", "2562": "750", "3511": "500", "5118": "500", "5440": "500", "5441": "750",
-            "6245": "500", "6528": "1500", "6536": "750", "6541": "250", "6542": "750", "6554": "750", 
-            "6556": "250", "6557": "750", "6560": "750", "6563": "750", "6566": "750", "6579": "750", 
-            "6650": "750", "6653": "750", "6656": "750", "6701": "1500", "7074": "1500", "7081": "1500", 
-            "7140": "1000", "7141": "1000", "7148": "1000", "7149": "1000", "7280": "1000", "7287": "500", 
-            "7316": "750", "7317": "750", "7318": "750", "7319": "750", "7320": "500", "7321": "500", 
-            "7322": "500", "7364": "500", "7366": "750"
-        };
+        const hanaFines = { "2555": "250", "2562": "750", "3511": "500", "5118": "500", "5440": "500", "5441": "750", "6245": "500", "6528": "1500", "6536": "750", "6541": "250", "6542": "750", "6554": "750", "6556": "250", "6557": "750", "6560": "750", "6563": "750", "6566": "750", "6579": "750", "6650": "750", "6653": "750", "6656": "750", "6701": "1500", "7074": "1500", "7081": "1500", "7140": "1000", "7141": "1000", "7148": "1000", "7149": "1000", "7280": "1000", "7287": "500", "7316": "750", "7317": "750", "7318": "750", "7319": "750", "7320": "500", "7321": "500", "7322": "500", "7364": "500", "7366": "750" };
         const hanaSummons = ["0913","2000","2005","2023","2106","2107","2108","2487","2488","2489","2494","2556","2557","3015","3016","3208","3477","4077","4465","4609","5901","6153","6188","6189","6190","6191","6192","6243","6251","6254","6279","6327","6371","6401","6405","6406","6453","6458","6467","6468","6484","6488","6489","6490","6491","6575","6587","6602","6603","6618","6623","6627","6629","6630","6631","6632","6660","6676","6684","6685","6687","6719","6739","6741","6742","6744","6745","6846","6847","7021","7022","7023","7027","7028","7029","7030","7031","7033","7034","7035","7036","7037","7038","7045","7068","7070","7071","7073","7075","7078","7080","7082","7084","7086","7088","7090","7092","7094","7096","7102","7103","7104","7105","7106","7109","7113","7114","7122","7126","7127","7130","7131","7132","7133","7137","7138","7139","7155","7160","7161","7166","7168","7171","7172","7173","7177","7178","7179","7180","7181","7182","7183","7184","7185","7186","7187","7188","7189","7190","7191","7193","7196","7206","7243","7264","7270","7271","7281","7282","7283","7297","7298","7300","7350","7356","7357","7358","7359","7363"];
         const NO_WARNING_CODES = ["7140", "7257", "7141", "6528", "7255", "6701", "7159", "5441", "7256", "6680", "6201", "6105", "6106", "3827", "6055", "5920", "7324", "7339", "7346", "5663", "2555", "2562", "5439", "6103", "6104", "6199", "6249", "6250", "7203", "3847", "3848", "3849", "3850", "5637", "5641", "5664", "5668", "6180", "6267", "6420", "7154", "7170", "3511", "7258", "5512", "7259", "5952"];
 
-        async function loadOffenses() {
-            try {
-                const response = await fetch(`${baseUrl}?resource_id=${offenseResourceId}&limit=10000`);
-                const data = await response.json();
-                apiRecords = data.result.records;
-            } catch (error) {}
-        }
+        async function loadOffenses() { try { const r = await fetch(`${baseUrl}?resource_id=${offenseResourceId}&limit=10000`); const d = await r.json(); apiRecords = d.result.records; } catch (e) {} }
         loadOffenses();
 
         function buildCard(record) {
@@ -215,22 +290,12 @@
             const pointsText = nikud > 0 ? `${nikud} נקודות` : 'ללא נקודות';
             
             let isHana = hanaFines[semel] !== undefined || hanaSummons.includes(semel);
-            let knasNum = 0;
-            let isSummons = false;
+            let knasNum = 0; let isSummons = false;
 
-            if (isHana) {
-                if (hanaSummons.includes(semel)) { isSummons = true; } 
-                else { knasNum = parseInt(hanaFines[semel]); }
-            } else {
-                let knasRaw = record['קנס'] || record['KNAS'] || record['סכום קנס'] || '0';
-                if (String(knasRaw).includes('/')) knasRaw = String(knasRaw).split('/')[0]; 
-                knasNum = parseInt(knasRaw);
-                isSummons = false; 
-            }
+            if (isHana) { if (hanaSummons.includes(semel)) { isSummons = true; } else { knasNum = parseInt(hanaFines[semel]); } } 
+            else { let knasRaw = record['קנס'] || record['KNAS'] || '0'; if (String(knasRaw).includes('/')) knasRaw = String(knasRaw).split('/')[0]; knasNum = parseInt(knasRaw); }
 
-            let tagsHTML = '';
-            let warningHTML = '';
-            let isSpeeding = desc.includes('מהירות') || desc.includes('קמ"ש') || desc.includes('קמש');
+            let tagsHTML = ''; let warningHTML = ''; let isSpeeding = desc.includes('מהירות') || desc.includes('קמ"ש') || desc.includes('קמש');
 
             if (isSummons) { tagsHTML += `<div class="badge court blink">🚨 הזמנה לדין</div>`; } 
             else if (knasNum > 0) {
@@ -241,33 +306,16 @@
             }
 
             const titleIcon = isHana ? '✅ סעיף בחנ"א' : '⭐ סמל סעיף';
-
-            return `
-                <div class="offense-card">
-                    <div class="card-header">
-                        <div class="semel-row">${titleIcon}: ${semel}</div>
-                        <div class="tags-row">${tagsHTML}<div class="${pointsClass}">🎯 ${pointsText}</div></div>
-                        ${warningHTML}
-                    </div>
-                    <div class="data-row"><div class="label">נוסח אישום מלא:</div><div class="value">${desc}</div></div>
-                    <div class="data-row"><div class="label">סעיף תקנה:</div><div class="value">${takana}</div></div>
-                </div>
-            `;
+            return `<div class="offense-card"><div class="card-header"><div class="semel-row">${titleIcon}: ${semel}</div><div class="tags-row">${tagsHTML}<div class="${pointsClass}">🎯 ${pointsText}</div></div>${warningHTML}</div><div class="data-row"><div class="label">נוסח אישום מלא:</div><div class="value">${desc}</div></div><div class="data-row"><div class="label">סעיף תקנה:</div><div class="value">${takana}</div></div></div>`;
         }
 
-        const sInput = document.getElementById('searchInput');
-        const aList = document.getElementById('autocompleteList');
-        const oResults = document.getElementById('offenseResults');
+        const sInput = document.getElementById('searchInput'); const aList = document.getElementById('autocompleteList'); const oResults = document.getElementById('offenseResults');
 
         sInput.addEventListener('keydown', function(e) {
             let items = aList.getElementsByClassName('autocomplete-item');
             if (e.keyCode === 40) { currentFocus++; addActive(items); } 
             else if (e.keyCode === 38) { currentFocus--; addActive(items); } 
-            else if (e.keyCode === 13) {
-                e.preventDefault();
-                if (currentFocus > -1 && items.length > 0) items[currentFocus].click();
-                else performOffenseSearch();
-            }
+            else if (e.keyCode === 13) { e.preventDefault(); if (currentFocus > -1 && items.length > 0) items[currentFocus].click(); else performOffenseSearch(); }
         });
 
         function addActive(items) {
@@ -280,26 +328,17 @@
         }
 
         sInput.addEventListener('input', function() {
-            const val = this.value.trim();
-            aList.innerHTML = ''; aList.style.display = 'none'; currentFocus = -1;
+            const val = this.value.trim(); aList.innerHTML = ''; aList.style.display = 'none'; currentFocus = -1;
             if (!val || val.length < 2) return false;
-
             let matchCount = 0; 
             for (let i = 0; i < apiRecords.length; i++) {
-                const rec = apiRecords[i];
-                const semel = String(rec['סמל עבירה'] || rec['SEMEL_AVERA'] || '').trim();
-                const desc = String(rec['תיאור עבירה'] || rec['TEUR_AVERA'] || '');
-                const takana = String(rec['סעיף תקנה 1'] || rec['SEIF_TAKANA_1'] || '');
-                
+                const rec = apiRecords[i]; const semel = String(rec['סמל עבירה'] || '').trim(); const desc = String(rec['תיאור עבירה'] || ''); const takana = String(rec['סעיף תקנה 1'] || '');
                 if (semel.includes(val) || desc.includes(val)) {
                     if(matchCount === 0) aList.style.display = 'block';
                     matchCount++;
-                    const itemDiv = document.createElement("DIV");
-                    itemDiv.className = "autocomplete-item";
-                    let dDesc = desc;
-                    if (val) dDesc = dDesc.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
+                    const itemDiv = document.createElement("DIV"); itemDiv.className = "autocomplete-item";
+                    let dDesc = desc; if (val) dDesc = dDesc.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
                     let dSemel = semel.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
-
                     itemDiv.innerHTML = `<span class="item-title"><span>סעיף: ${dSemel}</span>${takana ? `<span class="item-takana">תקנה: ${takana}</span>` : ''}</span><span class="item-desc">${dDesc}</span>`;
                     itemDiv.addEventListener("click", function() { sInput.value = semel; aList.innerHTML = ''; aList.style.display = 'none'; oResults.innerHTML = buildCard(rec); });
                     aList.appendChild(itemDiv);
@@ -307,33 +346,22 @@
                 if (matchCount >= 10) break; 
             }
         });
-
         document.addEventListener("click", function (e) { if (e.target !== sInput) { aList.innerHTML = ''; aList.style.display = 'none'; } });
 
         async function performOffenseSearch() {
-            aList.innerHTML = ''; aList.style.display = 'none';
-            const searchTerm = sInput.value.trim();
-            if (!searchTerm) return;
+            aList.innerHTML = ''; aList.style.display = 'none'; const searchTerm = sInput.value.trim(); if (!searchTerm) return;
             oResults.innerHTML = '<div style="text-align:center;color:#fff;">מחפש במאגר...</div>';
-            
             try {
-                let foundInCache = apiRecords.filter(r => {
-                    const s = String(r['סמל עבירה'] || r['SEMEL_AVERA'] || '').trim();
-                    return s === searchTerm || (searchTerm.length > 2 && String(r['תיאור עבירה']).includes(searchTerm));
-                });
-
+                let foundInCache = apiRecords.filter(r => { const s = String(r['סמל עבירה'] || '').trim(); return s === searchTerm || (searchTerm.length > 2 && String(r['תיאור עבירה']).includes(searchTerm)); });
                 if (foundInCache.length > 0) {
                     foundInCache.sort((a, b) => {
-                        const sA = String(a['סמל עבירה'] || a['SEMEL_AVERA'] || '').trim();
-                        const sB = String(b['סמל עבירה'] || b['SEMEL_AVERA'] || '').trim();
-                        const isAHana = hanaFines[sA] || hanaSummons.includes(sA);
-                        const isBHana = hanaFines[sB] || hanaSummons.includes(sB);
+                        const sA = String(a['סמל עבירה']).trim(); const sB = String(b['סמל עבירה']).trim();
+                        const isAHana = hanaFines[sA] || hanaSummons.includes(sA); const isBHana = hanaFines[sB] || hanaSummons.includes(sB);
                         return isBHana - isAHana;
                     });
                     let html = ''; foundInCache.slice(0, 15).forEach(r => { html += buildCard(r); }); oResults.innerHTML = html;
                 } else {
-                    const url = `${baseUrl}?resource_id=${offenseResourceId}&q=${encodeURIComponent(searchTerm)}&limit=15`;
-                    const response = await fetch(url);
+                    const response = await fetch(`${baseUrl}?resource_id=${offenseResourceId}&q=${encodeURIComponent(searchTerm)}&limit=15`);
                     const data = await response.json();
                     if (data.result.records.length === 0) { oResults.innerHTML = '<div style="text-align:center;color:#fff;">לא נמצאו עבירות.</div>'; return; }
                     let html = ''; data.result.records.forEach(r => { html += buildCard(r); }); oResults.innerHTML = html;
@@ -343,43 +371,23 @@
 
         // === לוגיקת תו נכה ===
         function performDisabledCheck() {
-            const inputField = document.getElementById('carNumberInput');
-            const resBox = document.getElementById('disabledResults');
-            const rawInput = inputField.value;
-            let cleanNumber = "";
-            for (let i = 0; i < rawInput.length; i++) { if (rawInput[i] >= '0' && rawInput[i] <= '9') cleanNumber += rawInput[i]; }
-
+            const inputField = document.getElementById('carNumberInput'); const resBox = document.getElementById('disabledResults'); const rawInput = inputField.value;
+            let cleanNumber = ""; for (let i = 0; i < rawInput.length; i++) { if (rawInput[i] >= '0' && rawInput[i] <= '9') cleanNumber += rawInput[i]; }
             if (cleanNumber === '') { resBox.innerHTML = '<div class="msg-error">אנא הקלד מספר רכב חוקי</div>'; return; }
             resBox.innerHTML = '<div style="text-align:center;color:#fff;">בודק זכאות תו נכה במאגר...</div>';
-            const url = `https://data.gov.il/api/3/action/datastore_search?resource_id=c8b9f9c8-4612-4068-934f-d4acd2e3c06e&q=${cleanNumber}`;
-
-            fetch(url).then(r => r.json()).then(data => {
+            fetch(`https://data.gov.il/api/3/action/datastore_search?resource_id=c8b9f9c8-4612-4068-934f-d4acd2e3c06e&q=${cleanNumber}`).then(r => r.json()).then(data => {
                 if (data && data.success && data.result && data.result.records.length > 0) {
                     let exactMatch = null;
-                    for (let j = 0; j < data.result.records.length; j++) {
-                        let rec = data.result.records[j];
-                        for (let key in rec) { if (String(rec[key]).trim() === cleanNumber) { exactMatch = rec; break; } }
-                        if (exactMatch) break;
-                    }
+                    for (let j = 0; j < data.result.records.length; j++) { let rec = data.result.records[j]; for (let key in rec) { if (String(rec[key]).trim() === cleanNumber) { exactMatch = rec; break; } } if (exactMatch) break; }
                     if (exactMatch) {
                         let issueDate = 'לא מצוין';
-                        for (let k in exactMatch) {
-                            if (String(exactMatch[k]).includes('-') && String(exactMatch[k]).includes('T')) {
-                                let rawDate = String(exactMatch[k]).split('T')[0]; 
-                                let dateParts = rawDate.split('-'); 
-                                if (dateParts.length === 3) { issueDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; }
-                                break;
-                            }
-                        }
-                        let fCar = cleanNumber;
-                        if (cleanNumber.length === 7) fCar = cleanNumber.substring(0,2) + '-' + cleanNumber.substring(2,5) + '-' + cleanNumber.substring(5,7);
-                        if (cleanNumber.length === 8) fCar = cleanNumber.substring(0,3) + '-' + cleanNumber.substring(3,5) + '-' + cleanNumber.substring(5,8);
+                        for (let k in exactMatch) { if (String(exactMatch[k]).includes('-') && String(exactMatch[k]).includes('T')) { let dateParts = String(exactMatch[k]).split('T')[0].split('-'); if (dateParts.length === 3) { issueDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; } break; } }
+                        let fCar = cleanNumber; if (cleanNumber.length === 7) fCar = cleanNumber.substring(0,2) + '-' + cleanNumber.substring(2,5) + '-' + cleanNumber.substring(5,7); if (cleanNumber.length === 8) fCar = cleanNumber.substring(0,3) + '-' + cleanNumber.substring(3,5) + '-' + cleanNumber.substring(5,8);
                         resBox.innerHTML = `<div class="status-success-card"><div class="status-header">✓ מאושר: קיים תו נכה פעיל</div><div class="plate-box"><div class="plate-blue-strip"><div class="flag-box"><div class="flag-stripe"></div><div class="flag-star">✡</div><div class="flag-stripe"></div></div><div class="il-text"><span class="il-text-en">IL</span><span class="il-text-he">ישראל</span></div></div><div class="plate-num" dir="ltr">${fCar}</div></div><div class="issue-date">תאריך הפקה: <strong dir="ltr">${issueDate}</strong></div></div>`;
                     } else { resBox.innerHTML = '<div class="msg-error">לא נמצא תו נכה פעיל לרכב זה</div>'; }
                 } else { resBox.innerHTML = '<div class="msg-error">לא נמצא תו נכה פעיל לרכב זה</div>'; }
             }).catch(e => { resBox.innerHTML = '<div class="msg-error">שגיאת תקשורת מול המאגר.</div>'; });
         }
-
 
         // === לוגיקת אנשי קשר (Google Sheets) ===
         const expertInput = document.getElementById('expertSearchInput');
@@ -387,95 +395,43 @@
         const noExpertResults = document.getElementById('noExpertResults');
         const loadingIndicator = document.getElementById('loadingExperts');
         let contactsData = [];
-
         const cleanString = (str) => str.toLowerCase().replace(/["'״׳\-]/g, '').trim();
 
-        // פונקציה למשיכת הנתונים בזמן אמת מהגוגל שיטס
         async function fetchContactsFromSheets() {
             if (GOOGLE_SHEET_API_URL === "הדבק_כאן_את_הקישור" || !GOOGLE_SHEET_API_URL.includes("script.google.com")) {
-                loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאה: חסר קישור ל-Google Sheets בתוך קוד האתר.</span>';
-                return;
+                loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאה: חסר קישור ל-Google Sheets בתוך קוד האתר.</span>'; return;
             }
-
             try {
-                const response = await fetch(GOOGLE_SHEET_API_URL);
-                contactsData = await response.json();
-                
-                // העלמת הודעת הטעינה ושחרור תיבת החיפוש
-                loadingIndicator.style.display = 'none';
-                expertInput.disabled = false;
-                
-                // יצירת הכרטיסיות
-                renderContacts();
-            } catch (error) {
-                console.error("Error fetching contacts:", error);
-                loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאת תקשורת מול Google Sheets. ודא שהרשאות הקובץ מוגדרות ל"כל אחד".</span>';
-            }
+                const response = await fetch(GOOGLE_SHEET_API_URL); contactsData = await response.json();
+                loadingIndicator.style.display = 'none'; expertInput.disabled = false; renderContacts();
+            } catch (error) { loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאת תקשורת מול Google Sheets. ודא שהרשאות הקובץ מוגדרות ל"כל אחד".</span>'; }
         }
 
-        // בניית הכרטיסיות ב-HTML
         function renderContacts() {
-            expertResultsContainer.innerHTML = ''; // ניקוי
+            expertResultsContainer.innerHTML = '';
             contactsData.forEach(contact => {
-                const cleanPhone = contact.phone.replace(/\D/g, '');
-                const isMobile = cleanPhone.startsWith('05');
-                const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
-                
-                const card = document.createElement('div');
-                card.className = 'expert-card offense-card';
-                card.setAttribute('data-search', cleanString(contact.name));
-                card.setAttribute('data-phone', cleanPhone);
-                
+                const cleanPhone = contact.phone.replace(/\D/g, ''); const isMobile = cleanPhone.startsWith('05'); const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
+                const card = document.createElement('div'); card.className = 'expert-card offense-card'; card.setAttribute('data-search', cleanString(contact.name)); card.setAttribute('data-phone', cleanPhone);
                 let actionsHTML = `<a class="action-btn btn-call" href="tel:${cleanPhone}"><svg class="btn-icon"><use href="#icon-phone"></use></svg> חיוג</a>`;
-                if (isMobile) {
-                    actionsHTML += `<a class="action-btn btn-wa" href="${waLink}" target="_blank"><svg class="btn-icon"><use href="#icon-wa"></use></svg> WhatsApp</a>`;
-                }
-
-                card.innerHTML = `
-                    <div class="contact-name">${contact.name}</div>
-                    <div class="contact-phone"><svg><use href="#icon-phone"></use></svg> ${contact.phone}</div>
-                    <div class="actions">${actionsHTML}</div>
-                `;
+                if (isMobile) { actionsHTML += `<a class="action-btn btn-wa" href="${waLink}" target="_blank"><svg class="btn-icon"><use href="#icon-wa"></use></svg> WhatsApp</a>`; }
+                card.innerHTML = `<div class="contact-name">${contact.name}</div><div class="contact-phone"><svg><use href="#icon-phone"></use></svg> ${contact.phone}</div><div class="actions">${actionsHTML}</div>`;
                 expertResultsContainer.appendChild(card);
             });
         }
 
-        // פונקציית סינון החיפוש בזמן אמת
         function handleExpertSearch() {
-            const query = expertInput.value.trim();
-            const cards = expertResultsContainer.querySelectorAll('.expert-card');
-            let visibleCount = 0;
-            
-            if (query.length === 0) {
-                cards.forEach(card => card.style.display = 'none');
-                noExpertResults.style.display = 'none';
-                return;
-            }
-
-            const cleanQuery = cleanString(query);
-            const queryPhone = query.replace(/\D/g, '');
-
+            const query = expertInput.value.trim(); const cards = expertResultsContainer.querySelectorAll('.expert-card'); let visibleCount = 0;
+            if (query.length === 0) { cards.forEach(card => card.style.display = 'none'); noExpertResults.style.display = 'none'; return; }
+            const cleanQuery = cleanString(query); const queryPhone = query.replace(/\D/g, '');
             cards.forEach(card => {
-                const searchName = card.getAttribute('data-search');
-                const searchPhone = card.getAttribute('data-phone');
-
-                if (searchName.includes(cleanQuery) || (queryPhone && searchPhone.includes(queryPhone))) {
-                    card.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
+                const searchName = card.getAttribute('data-search'); const searchPhone = card.getAttribute('data-phone');
+                if (searchName.includes(cleanQuery) || (queryPhone && searchPhone.includes(queryPhone))) { card.style.display = 'flex'; visibleCount++; } else { card.style.display = 'none'; }
             });
-
             noExpertResults.style.display = visibleCount === 0 ? 'block' : 'none';
         }
-
         expertInput.addEventListener('input', handleExpertSearch);
-
-        // הפעלת משיכת הנתונים ברגע שהדף עולה
         fetchContactsFromSheets();
 
     </script>
 </body>
 </html>
-
