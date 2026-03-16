@@ -468,6 +468,46 @@
         }
         expertInput.addEventListener('input', handleExpertSearch);
         fetchContactsFromSheets();
+        // --- קוד התקנת אפליקציה לאנדרואיד (PWA) ---
+        
+        // 1. רישום פועל הבמה (Service Worker) - חובה לאנדרואיד
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('Service Worker registered!');
+                }).catch(err => {
+                    console.log('Service Worker failed', err);
+                });
+            });
+        }
+
+        // 2. הפעלת כפתור ההתקנה הירוק
+        let deferredPrompt;
+        const installBtn = document.getElementById('installAppBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // עוצר את ההתנהגות הרגילה של גוגל
+            e.preventDefault();
+            // שומר את הבקשה
+            deferredPrompt = e;
+            // מציג את הכפתור שלך
+            if(installBtn) {
+                installBtn.style.display = 'flex';
+            }
+        });
+
+        if(installBtn) {
+            installBtn.addEventListener('click', async () => {
+                // מסתיר את הכפתור אחרי הלחיצה
+                installBtn.style.display = 'none';
+                if(deferredPrompt) {
+                    // מקפיץ את שאלת ההתקנה הרשמית של אנדרואיד
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                }
+            });
+        }
 
     </script>
 </body>
