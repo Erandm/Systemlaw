@@ -179,6 +179,19 @@
             </div>
         </div>
 
+        <details style="background: #2a2a2a; color: #fff; padding: 12px; border-radius: 8px; border: 1px solid #f2cb05; margin: 0 0 25px 0; width: 100%; box-sizing: border-box; text-align: right; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <summary style="font-weight: bold; color: #f2cb05; font-size: 15px; outline: none; list-style: none; display: flex; justify-content: center; align-items: center;">
+                💡 איך לחפש נכון במערכת? (הסבר)
+            </summary>
+            <div style="margin-top: 15px; font-size: 13px; line-height: 1.6; color: #dcdcdc; border-top: 1px solid #444; padding-top: 10px;">
+                <p style="margin-top:0;">ברוכים הבאים למערכת העזר המקצועית בתחום <strong>דיני תעבורה</strong>. המערכת פותחה על ידי <strong>עורך דין תעבורה ערן דמרי</strong>, כדי לייעל את עבודתו של כל <strong>עו״ד תעבורה</strong>. הנה כמה טיפים לחיפוש יעיל:</p>
+                <ul style="padding-right: 20px; margin-bottom: 0;">
+                    <li style="margin-bottom: 8px;"><strong>איתור עבירות:</strong> במנוע חיפוש <strong>עבירות חנא</strong>, הקלידו סעיף או מילה (למשל: <strong>מהירות</strong> מופרזת, שכרות, או כל <strong>הפרת תעבורה</strong> / <strong>הפרה</strong> אחרת) והמערכת תשלוף נתונים לניהול תיקי <strong>עבירות תנועה</strong>.</li>
+                    <li style="margin-bottom: 8px;"><strong>סטטוס רכבים:</strong> כאן תוכלו לבצע <strong>בדיקת תו נכה</strong> מהירה לרכב.</li>
+                    <li><strong>אנשי קשר:</strong> המערכת כוללת <strong>מאגר טלפונים משפטי</strong>. חפשו מומחים או נציגי <strong>משרד רישוי</strong>.</li>
+                </ul>
+            </div>
+        </details>
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('tab-offense', this)">עבירות חנ"א</button>
             <button class="tab-btn" onclick="switchTab('tab-disabled', this)">בדיקת תו נכה</button>
@@ -188,7 +201,7 @@
         <div id="tab-offense" class="tab-content active">
             <div class="search-wrapper">
                 <div class="search-input-group tooltip-container">
-                    <input type="text" id="searchInput" placeholder="הקלד את העבירה ו/או סמל סעיף" autocomplete="off">
+                    <input type="text" id="searchInput" placeholder="חפש עבירת תנועה, סעיף חנ״א, מהירות..." autocomplete="off">
                     <button class="search-btn" onclick="performOffenseSearch()">חפש</button>
                 </div>
                 <div id="autocompleteList" class="autocomplete-list"></div>
@@ -199,7 +212,7 @@
 
         <div id="tab-disabled" class="tab-content">
             <div class="search-input-group" style="margin-bottom:25px;">
-                <input type="text" id="carNumberInput" placeholder="הקלד מספר רישוי" autocomplete="off" style="text-align: center; letter-spacing: 2px; font-weight:bold;">
+                <input type="text" id="carNumberInput" placeholder="הקלד מספר רכב לבדיקת תו נכה" autocomplete="off" style="text-align: center; letter-spacing: 2px; font-weight:bold;">
                 <button class="search-btn" onclick="performDisabledCheck()">בדוק רכב</button>
             </div>
             <div id="disabledStatus" class="status-msg"></div>
