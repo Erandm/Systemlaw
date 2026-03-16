@@ -245,55 +245,54 @@
         </div>
     </div>
 
-    <script>
+        <script>
         // =======================================================
-        // הכנס כאן את הקישור שהעתקת מגוגל Apps Script:
+        // הגדרות ומשתנים כלליים
         // =======================================================
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzHh9oWMPATuev4sAvEWzvSMXsPZZacISGz33GNrlJ_OZtTISSLHYGxSy4YMhJ6G39_/exec"; 
-        
-        // === רישום Service Worker להתקנת האפליקציה ===
+
+        // === התקנת אפליקציה (PWA) - מאוחד ונקי ===
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
             });
         }
 
-        // === לוגיקת כפתור ההתקנה ===
         const installBtn = document.getElementById('installAppBtn');
         const iosPrompt = document.getElementById('iosPrompt');
         let deferredPrompt;
 
-        // זיהוי אם המכשיר הוא אייפון/אייפד
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        // זיהוי אם האפליקציה כבר מותקנת (כדי להעלים את הכפתור)
         const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
         if (!isStandalone) {
             if (isIOS) {
-                // לאייפון נציג את הכפתור שמפעיל הדרכה
-                installBtn.style.display = 'flex';
-                installBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16 5l-4-4-4 4h3v9h2V5h3zM20 9h-3v2h2v10H5V11h2V9H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V10a1 1 0 00-1-1z"/></svg> התקן לאייפון';
-                installBtn.addEventListener('click', () => {
-                    iosPrompt.style.display = iosPrompt.style.display === 'block' ? 'none' : 'block';
-                });
+                // לוגיקת התקנה לאייפון
+                if(installBtn) {
+                    installBtn.style.display = 'flex';
+                    installBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16 5l-4-4-4 4h3v9h2V5h3zM20 9h-3v2h2v10H5V11h2V9H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V10a1 1 0 00-1-1z"/></svg> התקן לאייפון';
+                    installBtn.addEventListener('click', () => {
+                        if(iosPrompt) iosPrompt.style.display = iosPrompt.style.display === 'block' ? 'none' : 'block';
+                    });
+                }
             } else {
-                // לאנדרואיד/מחשב נאזין לאירוע ההתקנה הרשמי של גוגל
+                // לוגיקת התקנה לאנדרואיד
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     deferredPrompt = e;
-                    installBtn.style.display = 'flex'; // מציג את הכפתור רק אם אפשר להתקין
+                    if(installBtn) installBtn.style.display = 'flex';
                 });
 
-                installBtn.addEventListener('click', async () => {
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                            installBtn.style.display = 'none'; // מעלים אחרי התקנה
+                if(installBtn) {
+                    installBtn.addEventListener('click', async () => {
+                        if (deferredPrompt) {
+                            installBtn.style.display = 'none';
+                            deferredPrompt.prompt();
+                            const { outcome } = await deferredPrompt.userChoice;
+                            deferredPrompt = null;
                         }
-                        deferredPrompt = null;
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -305,7 +304,7 @@
             btnElement.classList.add('active');
         }
 
-        // === לוגיקת עבירות ===
+        // === לוגיקת עבירות חנ"א ===
         const offenseResourceId = 'a2dd714b-e012-46e4-a996-6307f8b46fc5';
         const baseUrl = 'https://data.gov.il/api/3/action/datastore_search';
         let apiRecords = []; 
@@ -325,7 +324,7 @@
             const nikud = parseInt(record['ניקוד'] || record['NIKUD'] || '0');
             const pointsClass = nikud > 0 ? 'badge points has-points' : 'badge points no-points';
             const pointsText = nikud > 0 ? `${nikud} נקודות` : 'ללא נקודות';
-            
+
             let isHana = hanaFines[semel] !== undefined || hanaSummons.includes(semel);
             let knasNum = 0; let isSummons = false;
 
@@ -348,44 +347,38 @@
 
         const sInput = document.getElementById('searchInput'); const aList = document.getElementById('autocompleteList'); const oResults = document.getElementById('offenseResults');
 
-        sInput.addEventListener('keydown', function(e) {
-            let items = aList.getElementsByClassName('autocomplete-item');
-            if (e.keyCode === 40) { currentFocus++; addActive(items); } 
-            else if (e.keyCode === 38) { currentFocus--; addActive(items); } 
-            else if (e.keyCode === 13) { e.preventDefault(); if (currentFocus > -1 && items.length > 0) items[currentFocus].click(); else performOffenseSearch(); }
-        });
+        if(sInput) {
+            sInput.addEventListener('keydown', function(e) {
+                let items = aList.getElementsByClassName('autocomplete-item');
+                if (e.keyCode === 40) { currentFocus++; addActive(items); } 
+                else if (e.keyCode === 38) { currentFocus--; addActive(items); } 
+                else if (e.keyCode === 13) { e.preventDefault(); if (currentFocus > -1 && items.length > 0) items[currentFocus].click(); else performOffenseSearch(); }
+            });
 
-        function addActive(items) {
-            if (!items || items.length === 0) return false;
-            for (let i = 0; i < items.length; i++) items[i].classList.remove("active-item");
-            if (currentFocus >= items.length) currentFocus = 0;
-            if (currentFocus < 0) currentFocus = (items.length - 1);
-            items[currentFocus].classList.add("active-item");
-            items[currentFocus].scrollIntoView({ block: "nearest" });
-        }
-
-        sInput.addEventListener('input', function() {
-            const val = this.value.trim(); aList.innerHTML = ''; aList.style.display = 'none'; currentFocus = -1;
-            if (!val || val.length < 2) return false;
-            let matchCount = 0; 
-            for (let i = 0; i < apiRecords.length; i++) {
-                const rec = apiRecords[i]; const semel = String(rec['סמל עבירה'] || '').trim(); const desc = String(rec['תיאור עבירה'] || ''); const takana = String(rec['סעיף תקנה 1'] || '');
-                if (semel.includes(val) || desc.includes(val)) {
-                    if(matchCount === 0) aList.style.display = 'block';
-                    matchCount++;
-                    const itemDiv = document.createElement("DIV"); itemDiv.className = "autocomplete-item";
-                    let dDesc = desc; if (val) dDesc = dDesc.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
-                    let dSemel = semel.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
-                    itemDiv.innerHTML = `<span class="item-title"><span>סעיף: ${dSemel}</span>${takana ? `<span class="item-takana">תקנה: ${takana}</span>` : ''}</span><span class="item-desc">${dDesc}</span>`;
-                    itemDiv.addEventListener("click", function() { sInput.value = semel; aList.innerHTML = ''; aList.style.display = 'none'; oResults.innerHTML = buildCard(rec); });
-                    aList.appendChild(itemDiv);
+            sInput.addEventListener('input', function() {
+                const val = this.value.trim(); aList.innerHTML = ''; aList.style.display = 'none'; currentFocus = -1;
+                if (!val || val.length < 2) return false;
+                let matchCount = 0; 
+                for (let i = 0; i < apiRecords.length; i++) {
+                    const rec = apiRecords[i]; const semel = String(rec['סמל עבירה'] || '').trim(); const desc = String(rec['תיאור עבירה'] || ''); const takana = String(rec['סעיף תקנה 1'] || '');
+                    if (semel.includes(val) || desc.includes(val)) {
+                        if(matchCount === 0) aList.style.display = 'block';
+                        matchCount++;
+                        const itemDiv = document.createElement("DIV"); itemDiv.className = "autocomplete-item";
+                        let dDesc = desc; if (val) dDesc = dDesc.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
+                        let dSemel = semel.replace(new RegExp(`(${val})`, "gi"), "<span class='highlight'>$1</span>");
+                        itemDiv.innerHTML = `<span class="item-title"><span>סעיף: ${dSemel}</span>${takana ? `<span class="item-takana">תקנה: ${takana}</span>` : ''}</span><span class="item-desc">${dDesc}</span>`;
+                        itemDiv.addEventListener("click", function() { sInput.value = semel; aList.innerHTML = ''; aList.style.display = 'none'; oResults.innerHTML = buildCard(rec); });
+                        aList.appendChild(itemDiv);
+                    }
+                    if (matchCount >= 10) break; 
                 }
-                if (matchCount >= 10) break; 
-            }
-        });
-        document.addEventListener("click", function (e) { if (e.target !== sInput) { aList.innerHTML = ''; aList.style.display = 'none'; } });
+            });
+        }
+        document.addEventListener("click", function (e) { if (e.target !== sInput && aList) { aList.innerHTML = ''; aList.style.display = 'none'; } });
 
         async function performOffenseSearch() {
+            if(!aList || !sInput || !oResults) return;
             aList.innerHTML = ''; aList.style.display = 'none'; const searchTerm = sInput.value.trim(); if (!searchTerm) return;
             oResults.innerHTML = '<div style="text-align:center;color:#fff;">מחפש במאגר...</div>';
             try {
@@ -408,7 +401,9 @@
 
         // === לוגיקת תו נכה ===
         function performDisabledCheck() {
-            const inputField = document.getElementById('carNumberInput'); const resBox = document.getElementById('disabledResults'); const rawInput = inputField.value;
+            const inputField = document.getElementById('carNumberInput'); const resBox = document.getElementById('disabledResults'); 
+            if(!inputField || !resBox) return;
+            const rawInput = inputField.value;
             let cleanNumber = ""; for (let i = 0; i < rawInput.length; i++) { if (rawInput[i] >= '0' && rawInput[i] <= '9') cleanNumber += rawInput[i]; }
             if (cleanNumber === '') { resBox.innerHTML = '<div class="msg-error">אנא הקלד מספר רכב חוקי</div>'; return; }
             resBox.innerHTML = '<div style="text-align:center;color:#fff;">בודק זכאות תו נכה במאגר...</div>';
@@ -435,16 +430,18 @@
         const cleanString = (str) => str.toLowerCase().replace(/["'״׳\-]/g, '').trim();
 
         async function fetchContactsFromSheets() {
+            if(!loadingIndicator) return;
             if (GOOGLE_SHEET_API_URL === "https://docs.google.com/spreadsheets/d/1XZzKr3dMYt5GVGs8sx2_EsyecFdmLAnO8csBbZmew7s/edit?gid=0#gid=0" || !GOOGLE_SHEET_API_URL.includes("script.google.com")) {
                 loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאה: חסר קישור ל-Google Sheets בתוך קוד האתר.</span>'; return;
             }
             try {
                 const response = await fetch(GOOGLE_SHEET_API_URL); contactsData = await response.json();
-                loadingIndicator.style.display = 'none'; expertInput.disabled = false; renderContacts();
+                loadingIndicator.style.display = 'none'; if(expertInput) expertInput.disabled = false; renderContacts();
             } catch (error) { loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאת תקשורת מול Google Sheets. ודא שהרשאות הקובץ מוגדרות ל"כל אחד".</span>'; }
         }
 
         function renderContacts() {
+            if(!expertResultsContainer) return;
             expertResultsContainer.innerHTML = '';
             contactsData.forEach(contact => {
                 const cleanPhone = contact.phone.replace(/\D/g, ''); const isMobile = cleanPhone.startsWith('05'); const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
@@ -457,6 +454,7 @@
         }
 
         function handleExpertSearch() {
+            if(!expertInput || !expertResultsContainer || !noExpertResults) return;
             const query = expertInput.value.trim(); const cards = expertResultsContainer.querySelectorAll('.expert-card'); let visibleCount = 0;
             if (query.length === 0) { cards.forEach(card => card.style.display = 'none'); noExpertResults.style.display = 'none'; return; }
             const cleanQuery = cleanString(query); const queryPhone = query.replace(/\D/g, '');
@@ -466,49 +464,11 @@
             });
             noExpertResults.style.display = visibleCount === 0 ? 'block' : 'none';
         }
-        expertInput.addEventListener('input', handleExpertSearch);
-        fetchContactsFromSheets();
-        // --- קוד התקנת אפליקציה לאנדרואיד (PWA) ---
+        if(expertInput) expertInput.addEventListener('input', handleExpertSearch);
         
-        // 1. רישום פועל הבמה (Service Worker) - חובה לאנדרואיד
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('Service Worker registered!');
-                }).catch(err => {
-                    console.log('Service Worker failed', err);
-                });
-            });
-        }
-
-        // 2. הפעלת כפתור ההתקנה הירוק
-        let deferredPrompt;
-        const installBtn = document.getElementById('installAppBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // עוצר את ההתנהגות הרגילה של גוגל
-            e.preventDefault();
-            // שומר את הבקשה
-            deferredPrompt = e;
-            // מציג את הכפתור שלך
-            if(installBtn) {
-                installBtn.style.display = 'flex';
-            }
-        });
-
-        if(installBtn) {
-            installBtn.addEventListener('click', async () => {
-                // מסתיר את הכפתור אחרי הלחיצה
-                installBtn.style.display = 'none';
-                if(deferredPrompt) {
-                    // מקפיץ את שאלת ההתקנה הרשמית של אנדרואיד
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    deferredPrompt = null;
-                }
-            });
-        }
-
+        // הפעלה ראשונית
+        fetchContactsFromSheets();
     </script>
+
 </body>
 </html>
