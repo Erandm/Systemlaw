@@ -440,15 +440,51 @@
             } catch (error) { loadingIndicator.innerHTML = '<span style="color:var(--danger)">שגיאת תקשורת מול Google Sheets. ודא שהרשאות הקובץ מוגדרות ל"כל אחד".</span>'; }
         }
 
-        function renderContacts() {
+       function renderContacts() {
             if(!expertResultsContainer) return;
             expertResultsContainer.innerHTML = '';
             contactsData.forEach(contact => {
-                const cleanPhone = contact.phone.replace(/\D/g, ''); const isMobile = cleanPhone.startsWith('05'); const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
-                const card = document.createElement('div'); card.className = 'expert-card offense-card'; card.setAttribute('data-search', cleanString(contact.name)); card.setAttribute('data-phone', cleanPhone);
-                let actionsHTML = `<a class="action-btn btn-call" href="tel:${cleanPhone}"><svg class="btn-icon"><use href="#icon-phone"></use></svg> חיוג</a>`;
-                if (isMobile) { actionsHTML += `<a class="action-btn btn-wa" href="${waLink}" target="_blank"><svg class="btn-icon"><use href="#icon-wa"></use></svg> WhatsApp</a>`; }
-                card.innerHTML = `<div class="contact-name">${contact.name}</div><div class="contact-phone"><svg><use href="#icon-phone"></use></svg> ${contact.phone}</div><div class="actions">${actionsHTML}</div>`;
+                const contactValue = String(contact.phone || '').trim();
+                const isEmail = contactValue.includes('@');
+                
+                const card = document.createElement('div'); 
+                card.className = 'expert-card offense-card'; 
+                card.setAttribute('data-search', cleanString(contact.name) + ' ' + contactValue.toLowerCase());
+                
+                let actionsHTML = '';
+                let infoDisplayHTML = '';
+
+                if (isEmail) {
+                    // הגדרות למקרה של אימייל (כפתור כחול + אייקון מעטפה)
+                    actionsHTML = `<a class="action-btn" style="background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;" href="mailto:${contactValue}">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg> שלח מייל</a>`;
+                    
+                    infoDisplayHTML = `<div class="contact-phone" style="display: flex; align-items: center; gap: 5px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg> ${contactValue}</div>`;
+                    
+                    card.setAttribute('data-phone', 'email');
+                } else {
+                    // הגדרות רגילות לטלפון (חיוג + וואטסאפ)
+                    const cleanPhone = contactValue.replace(/\D/g, ''); 
+                    const isMobile = cleanPhone.startsWith('05'); 
+                    const waLink = `https://wa.me/972${cleanPhone.substring(1)}`;
+                    
+                    actionsHTML = `<a class="action-btn btn-call" href="tel:${cleanPhone}"><svg class="btn-icon"><use href="#icon-phone"></use></svg> חיוג</a>`;
+                    if (isMobile) { 
+                        actionsHTML += `<a class="action-btn btn-wa" href="${waLink}" target="_blank"><svg class="btn-icon"><use href="#icon-wa"></use></svg> WhatsApp</a>`; 
+                    }
+                    
+                    infoDisplayHTML = `<div class="contact-phone"><svg><use href="#icon-phone"></use></svg> ${contactValue}</div>`;
+                    card.setAttribute('data-phone', cleanPhone);
+                }
+
+                card.innerHTML = `<div class="contact-name">${contact.name}</div>${infoDisplayHTML}<div class="actions">${actionsHTML}</div>`;
                 expertResultsContainer.appendChild(card);
             });
         }
