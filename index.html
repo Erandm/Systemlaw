@@ -3,75 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <title>מערכת עזר משפטית | עו"ד ערן דמרי</title>
-    <meta name="description" content="מערכת עזר מקצועית לעורכי דין תעבורה מבית עו''ד ערן דמרי: חיפוש עבירות חנ''א מרץ 2026, בדיקת תו נכה, מאגר מומחים ומחשבון המרה לאזהרה.">
-    <meta name="keywords" content="עורך דין תעבורה, ערן דמרי, חנא, סמל סעיף, תו נכה, המרה לאזהרה, דוח תנועה, נקודות, עבירות תנועה">
-    <meta name="author" content="עו''ד ערן דמרי">
+    
+    <meta name="description" content="מערכת עזר מקצועית לעורכי דין תעבורה: חנ''א, תו נכה ומחשבון אזהרה.">
     <meta name="google-site-verification" content="b95FeajTUe8qQAx7oqYCWQlgBDopgw_KA48q6j96CkE" />
     
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f2cb05">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="עו''ד ערן דמרי">
     <link rel="apple-touch-icon" href="logo.png">
 
-    <meta property="og:title" content="מערכת עורכי דין - ערן דמרי">
-    <meta property="og:description" content="מערכת עזר משפטית לחיפוש עבירות תעבורה, בדיקת תו נכה ומחשבון אזהרה.">
-    <meta property="og:image" content="logo.png">
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1V4RFTK8HJ"></script>
-    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1V4RFTK8HJ');</script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {--primary:#f2cb05;--primary-hover:#d1b004;--danger:#ff4d4d;--success:#2ecc71;--info:#3498db;--bg-color:#121212;--card-bg:#1e1e1e;--text-main:#ffffff;--text-muted:#a0a0a0;--border:#333333; --secondary-blue: #3b82f6; --call-green: #10b981; --wa-green: #25D366;}
-        *{box-sizing:border-box;font-family:'Heebo',sans-serif;}
-        body{background-color:var(--bg-color);color:var(--text-main);margin:0;padding:0;display:flex;justify-content:center;min-height:100vh;}
-        .app-container{width:100%;max-width:500px;padding:20px;display:flex;flex-direction:column;position:relative;padding-bottom:140px;}
-        .header{text-align:center;margin-bottom:15px;}
-        .logo-container img{max-width:90%;height:auto;opacity:0.9;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));}
+        :root {--primary:#f2cb05; --bg:#121212; --card:#1e1e1e; --text:#fff; --border:#333; --success:#2ecc71; --danger:#ff4d4d; --info:#3498db; --wa:#25D366;}
+        *{box-sizing:border-box; font-family:'Heebo', sans-serif;}
+        body{background:var(--bg); color:var(--text); margin:0; padding:0; display:flex; justify-content:center; min-height:100vh;}
+        .app-container{width:100%; max-width:500px; padding:20px; position:relative; padding-bottom:120px;}
+        .header{text-align:center; margin-bottom:20px;}
+        .header img{max-width:80%; height:auto; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
         
-        .install-btn {display:none; background-color:var(--success); color:#fff; border:none; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer; margin: 0 auto 20px auto; align-items:center; gap:8px;}
-        .ios-prompt {display:none; background:#2a2a2a; border:1px solid var(--primary); padding:15px; border-radius:8px; text-align:center; margin-bottom:20px; font-size:14px;}
-
-        .tabs{display:flex;justify-content:center;gap:5px;margin-bottom:25px;}
-        .tab-btn{flex:1;padding:12px 2px;font-size:13px;font-weight:bold;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:8px;cursor:pointer;white-space:nowrap;transition:0.3s;}
-        .tab-btn.active{background:var(--primary);color:#000;border-color:var(--primary);}
+        .tabs{display:flex; gap:5px; margin-bottom:20px;}
+        .tab-btn{flex:1; padding:12px 5px; font-size:13px; font-weight:bold; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:8px; cursor:pointer;}
+        .tab-btn.active{background:var(--primary); color:#000; border-color:var(--primary);}
         
-        .tab-content{display:none; animation:fadeIn 0.4s ease-out;}
+        .tab-content{display:none;}
         .tab-content.active{display:block;}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-        .search-input-group{display:flex;background:#2a2a2a;border-radius:8px;border:1px solid #444;margin-bottom:15px;position:relative;overflow:hidden;}
-        input{flex-grow:1;padding:16px;font-size:16px;border:none;background:transparent;color:#fff;outline:none;}
-        .search-btn{background-color:var(--primary);color:#000;border:none;padding:0 20px;font-weight:bold;cursor:pointer;}
+        .search-group{display:flex; background:#2a2a2a; border-radius:8px; border:1px solid #444; margin-bottom:15px; overflow:hidden;}
+        input{flex:1; padding:15px; font-size:16px; border:none; background:transparent; color:#fff; outline:none;}
+        .search-btn{background:var(--primary); color:#000; border:none; padding:0 15px; font-weight:bold; cursor:pointer;}
 
+        .card{background:var(--card); border-radius:8px; padding:15px; border-right:4px solid var(--primary); border:1px solid var(--border); margin-bottom:15px;}
+        .badge{font-size:12px; font-weight:bold; padding:4px 8px; border-radius:4px; background:#333; color:#aaa; margin-left:5px;}
+        
         /* מחשבון אזהרה */
-        .check-container {display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #262626; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid #333;}
-        .check-container input {flex-grow: 0; width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer;}
-        .section-title {color: var(--primary); font-weight: bold; margin: 15px 0 10px 0; border-bottom: 1px dotted #555; padding-bottom: 5px; font-size: 14px;}
+        .check-item {display:flex; align-items:center; justify-content:space-between; padding:12px; background:#262626; border-radius:8px; margin-bottom:8px; border:1px solid #333;}
+        .check-item input{width:22px; height:22px; accent-color:var(--primary);}
 
-        .offense-card{background:var(--card-bg);border-radius:8px;padding:20px;border-right:4px solid var(--primary);border:1px solid var(--border); margin-bottom:15px;}
-        .badge{font-size:12px;font-weight:bold;padding:4px 8px;border-radius:4px;background:#2a2a2a;color:var(--text-muted);margin-left:5px;}
-        .badge.court.blink{animation:blinker 1.2s infinite alternate; background:#e74c3c; color:#fff;}
-        @keyframes blinker {from {opacity: 1;} to {opacity: 0.5;}}
+        .actions{display:flex; gap:8px; margin-top:10px;}
+        .act-btn{flex:1; display:flex; align-items:center; justify-content:center; gap:5px; padding:10px; border-radius:50px; color:#fff; text-decoration:none; font-weight:bold; font-size:14px;}
 
-        .expert-card { border-right: 4px solid var(--secondary-blue); display: flex; flex-direction: column; }
-        .contact-name { font-weight: 800; font-size: 1.1rem; color: var(--primary); margin-bottom:5px;}
-        .actions { display: flex; gap: 8px; margin-top:12px; }
-        .action-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 50px; color: white; text-decoration: none; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2);}
-        .btn-call { background: var(--call-green); }
-        .btn-wa { background: var(--wa-green); }
-        .btn-email { background: var(--info); }
-
-        .footer-note{position:absolute;bottom:15px;left:15px;right:15px;text-align:center;background:#1a1a1a;padding:15px;border-radius:8px;font-size:11px;color:#fff; border-top:1px solid var(--primary);}
+        .footer{position:absolute; bottom:15px; left:15px; right:15px; text-align:center; font-size:11px; opacity:0.7;}
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="header">
-            <div class="logo-container
+            <img src="logo.png" alt="עו''ד ערן דמרי" onerror="this.style.display='none'">
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-offense', this)">חנ"א</button>
+            <button class="tab-btn" onclick="switchTab('tab-warning', this)">אזהרה</button>
+            <button class="tab-btn" onclick="switchTab('tab-disabled', this)">תו נכה</button>
+            <button class="tab-btn" onclick="switchTab('tab-experts', this)">טלפונים</button>
+        </div>
+
+        <div id="tab-offense" class="tab-content active">
+            <div class="search-group">
+                <input type="text" id="offenseInput" placeholder="סמל סעיף או מילת חיפוש...">
+                <button class="search-btn" onclick="searchOffense()">חפש</button>
+            </div>
+            <div id="offenseResults"></div>
+        </div>
+
+        <div id="tab-warning" class="tab-content">
+            <input type="text" id="warnSemel" placeholder="סמל סעיף לבדיקה..." style="width:100%; background:#2a2a2a; border:1px solid #444; color:#fff; padding:15px; border-radius:8px; margin-bottom:15px;">
+            <div class="check-item">7 שנות ותק נהיגה? <input type="checkbox" id="w1"></div>
+            <div class="check-item">נקי ב-5 שנים אחרונות? <input type="checkbox" id="w2"></div>
+            <div class="check-item">הנהג מודה בעובדות? <input type="checkbox" id="w3"></div>
+            <div class="check-item">הנהג אזרח ישראלי? <input type="checkbox" id="w4" checked></div>
+            <div class="check-item">האם הרכב חונה (הדבקה)? <input type="checkbox" id="w5"></div>
+            <div class="check-item">תחבורה קלה: עבר הכשרה? <input type="checkbox" id="w6" checked></div>
+            <button class="search-btn" style="width:100%; height:50px; border-radius:8px; margin-top:10px;" onclick="checkWarning()">בדוק זכאות</button>
+            <div id="warnRes" style="margin-top:20px;"></div>
+        </div>
+
+        <div id="tab-disabled" class="tab-content">
+            <div class="search-group">
+                <input type="text" id="carInput" placeholder="מספר רכב">
+                <button class="search-btn" onclick="checkDisabled()">בדוק</button>
+            </div>
+            <div id="disabledRes"></div>
+        </div>
+
+        <div id="tab-experts" class="tab-content">
+            <input type="text" id="expSearch" placeholder="חיפוש במאגר..." style="width:100%; background:#2a2a2a; border:1px solid #444; color:#fff; padding:15px; border-radius:8px; margin-bottom:15px;">
+            <div id="expList">טוען נתונים...</div>
+        </div>
+
+        <div class="footer">מערכת עזר משפטית | חנ"א מרץ 2026</div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzHh9oWMPATuev4sAvEWzvSMXsPZZacISGz33GNrlJ_OZtTISSLHYGxSy4YMhJ6G39_/exec";
+        
+        // נתוני חנ"א בסיסיים
+        const fines = {"2555":"250","2562":"750","3511":"500","5118":"500","5440":"500","5441":"750","6245":"500","6528":"1500","6536":"750","6541":"250","6542":"750","6554":"750","6556":"250","6557":"750","6560":"750","6563":"750","6566":"750","6579":"750","6650":"750","6653":"750","6656":"750","6701":"1500","7074":"1500","7081":"1500","7140":"1000","7141":"1000","7148":"1000","7149":"1000","7280":"1000","7287":"500","7316":"750","7317":"750","7318":"750","7319":"750","7320":"500","7321":"500","7322":"500","7364":"500","7366":"750"};
+        const summons = ["0913","2000","2005","2023","2106","2107","2108","2487","2488","2489","2494","2556","2557","3015","3016","3208","3477","4077","4465","4609","5901","6153","6188","6189","6190","6191","6192","6243","6251","6254","6279","6327","6371","6401","6405","6406","6453","6458","6467","6468","6484","6488","6489","6490","6491","6575","6587","6602","6603","6618","6623","6627","6629","6630","6631","6632","6660","6676","6684","6685","6687","6719","6739","6741","6742","6744","6745","6846","6847","7021","7022","7023","7027","7028","7029","7030","7031","7033","7034","7035","7036","7037","7038","7045","7068","7070","7071","7073","7075","7078","7080","7082","7084","7086","7088","7090","7092","7094","7096","7102","7103","7104","7105","7106","7109","7113","7114","7122","7126","7127","7130","7131","7132","7133","7137","7138","7139","7155","7160","7161","7166","7168","7171","7172","7173","7177","7178","7179","7180","7181","7182","7183","7184","7185","7186","7187","7188","7189","7190","7191","7193","7196","7206","7243","7264","7270","7271","7281","7282","7283","7297","7298","7300","7350","7356","7357","7358","7359","7363"];
+        const blacklist = ["7140", "7257", "7141", "6528", "7255", "6701", "7159", "5441", "7256", "6680", "6201", "6105", "6106", "3827", "6055", "5920", "7324", "7339", "7346", "5663", "2555", "2562", "5439", "6103", "6104", "6199", "6249", "6250", "7203", "3847", "3848", "3849", "3850", "5637", "5641",
